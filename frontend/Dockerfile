@@ -1,17 +1,14 @@
-FROM node:20-bookworm-slim AS base
+# Build static assets with Node, then serve with nginx
+FROM node:20-bookworm-slim AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install # Installation des dépendances
-
-FROM base AS dev
+RUN npm ci
 COPY . .
-ENV NODE_ENV=development
-EXPOSE 5173
-CMD ["npm", "run", "dev"]
-
-FROM base AS prod
-COPY . .
-ENV NODE_ENV=production
 RUN npm run build
-EXPOSE 4173
-CMD ["npm", "run", "preview"]
+
+# Production image with nginx
+FROM nginx:stable-alpine AS prod
+COPY --from=build /app/dist /usr/share/nginx/html
+# Optional: copy a minimal nginx.conf if you have SPA routing needs
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

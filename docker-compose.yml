@@ -1,49 +1,40 @@
-services:
-  api:
-    build:
-      context: ./backend
-      target: dev
-    env_file: ./backend/.env
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./backend:/app
-      - node-modules:/app/node_modules
-    depends_on:
-      - mongo
-    profiles: ["dev"]
+version: '3.8'
 
-  api-prod:
+services:
+  backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
       target: prod
-    env_file: ./backend/.env
+    env_file: .env
     ports:
       - "3000:3000"
     depends_on:
       - mongo
-    profiles: ["prod"]
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - "80:80"
     depends_on:
-      - api
-      - mongo
+      - backend
+    restart: unless-stopped
 
   mongo:
     image: mongo:7
     restart: unless-stopped
-    ports:
-      - "27018:27017"
     volumes:
       - mongo-data:/data/db
+    ports:
+      - "27017:27017"
 
 volumes:
   mongo-data:
-  node-modules:
+
+# Usage:
+# From this folder (where this file and README.md live):
+# docker compose up --build -d
+# Then open frontend at http://localhost (port 80) and backend at http://localhost:3000
