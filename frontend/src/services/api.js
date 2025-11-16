@@ -38,4 +38,12 @@ export async function get(path, opts = {}) {
   return request(path, Object.assign({ method: 'GET' }, opts))
 }
 
+export async function patch(path, body, opts = {}) {
+  return request(path, Object.assign({ method: 'PATCH', body: JSON.stringify(body) }, opts))
+}
+
+export async function del(path, opts = {}) {
+  return request(path, Object.assign({ method: 'DELETE' }, opts))
+}
+
 export default { setAuthToken, post, get }

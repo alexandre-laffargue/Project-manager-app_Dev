@@ -1,8 +1,20 @@
 const dotenv = require('dotenv')
 const app = require('./app')
 const { connectDB } = require('./config/db')
+const fs = require('fs')
+const path = require('path')
 
 dotenv.config()
+
+
+try {
+  const secretPath = path.join('/run/secrets', 'jwt_secret')
+  if (fs.existsSync(secretPath)) {
+    const s = fs.readFileSync(secretPath, 'utf8').trim()
+    if (s) process.env.JWT_SECRET = s
+  }
+} catch (e) {
+}
 
 const PORT = process.env.PORT || 3000
 

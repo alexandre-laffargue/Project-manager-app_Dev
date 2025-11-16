@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
       target: prod
     env_file: .env
+    secrets:
+      - jwt_secret
     ports:
       - "3000:3000"
     depends_on:
@@ -33,6 +35,10 @@ services:
 
 volumes:
   mongo-data:
+
+secrets:
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
 
 # Usage:
 # From this folder (where this file and README.md live):

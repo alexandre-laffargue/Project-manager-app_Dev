@@ -24,7 +24,7 @@ export const useAuthStore = defineStore('auth', {
       if (!email || !/\S+@\S+\.\S+/.test(email)) {
         throw new Error("Adresse e-mail invalide")
       }
-      if (!password || password.length < 6) {
+      if (!password || password.length < 8) {
         throw new Error('Mot de passe invalide (minimum 6 caractères)')
       }
 
