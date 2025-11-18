@@ -30,23 +30,43 @@
           <div class="tasks-list">
             <!-- Ajouter une carte -->
             <div class="add-card">
-              <input v-model="newCardTitle[column._id]" placeholder="Nouvelle carte" />
-              <button @click="addCard(column)">Ajouter</button>
-            </div>
+  <input v-model="newCardTitle[column._id]" placeholder="Titre de la carte" />
+  <input v-model="newCardDescription[column._id]" placeholder="Description" />
+  <select v-model="newCardPriority[column._id]">
+    <option>Low</option>
+    <option>Medium</option>
+    <option>High</option>
+  </select>
+  <select v-model="newCardType[column._id]">
+    <option>Bug</option>
+    <option>Feature</option>
+    <option>Task</option>
+  </select>
+  <button @click="addCard(column)">Ajouter</button>
+</div>
+
 
             <div
-              class="task"
-              v-for="task in column.tasks"
-              :key="task._id"
-              draggable="true"
-              @dragstart="startDrag(task, column._id)"
-            >
-              <span>{{ task.title }}</span>
-              <div class="task-actions">
-                <button @click="editCard(column, task)">Modifier</button>
-                <button @click="deleteCard(column, task)">X</button>
-              </div>
-            </div>
+  class="task"
+  v-for="task in column.tasks"
+  :key="task._id"
+  draggable="true"
+  @dragstart="startDrag(task, column._id)"
+>
+  <h3 class="task-title">{{ task.title }}</h3>
+  <p class="task-desc">{{ task.description }}</p>
+
+  <div class="task-meta">
+    <span class="badge priority" :class="task.priority.toLowerCase()">{{ task.priority }}</span>
+    <span class="badge type">{{ task.type }}</span>
+  </div>
+
+  <div class="task-actions">
+    <button @click="editCard(column, task)">Modifier</button>
+    <button @click="deleteCard(column, task)">X</button>
+  </div>
+</div>
+
           </div>
         </div>
       </div>
@@ -67,6 +87,10 @@ const isAuthenticated = ref(false)
 const columns = reactive([])
 const newColumnName = ref('')
 const newCardTitle = reactive({})
+const newCardDescription = reactive({})
+const newCardPriority = reactive({})
+const newCardType = reactive({})
+
 let currentBoardId = null
 let draggedTask = null
 let draggedFromColumnId = null
@@ -109,7 +133,12 @@ async function loadBoardData () {
   })
 
   // init newCardTitle keys
-  columns.forEach(c => { newCardTitle[c._id] = '' })
+  columns.forEach(c => {
+    newCardTitle[c._id] = ''
+    newCardDescription[c._id] = ''
+    newCardPriority[c._id] = 'Medium'
+    newCardType[c._id] = 'Task'
+  })
 }
 
 async function addColumn () {
@@ -135,21 +164,50 @@ async function deleteColumn (column, index) {
   columns.splice(index, 1)
 }
 
-async function addCard (column) {
+async function addCard(column) {
   const title = (newCardTitle[column._id] || '').trim()
   if (!title) return
-  const payload = { title, columnId: column._id, position: column.tasks.length }
+
+  const payload = {
+    title,
+    description: newCardDescription[column._id] || '',
+    priority: newCardPriority[column._id] || 'Medium',
+    type: newCardType[column._id] || 'Task',
+    columnId: column._id,
+    position: column.tasks.length
+  }
+
   const created = await post(`/api/boards/${currentBoardId}/cards`, payload)
   column.tasks.push(created)
+
+  // reset
   newCardTitle[column._id] = ''
+  newCardDescription[column._id] = ''
+  newCardPriority[column._id] = 'Medium'
+  newCardType[column._id] = 'Task'
 }
 
-async function editCard (column, task) {
-  const newTitle = prompt('Modifier la carte :', task.title)
+async function editCard(column, task) {
+  const newTitle = prompt('Titre :', task.title)
+  const newDescription = prompt('Description :', task.description)
+  const newPriority = prompt('Priorité (Low/Medium/High) :', task.priority)
+  const newType = prompt('Type (Bug/Feature/Task) :', task.type)
+
   if (!newTitle?.trim()) return
-  const updated = await patch(`/api/cards/${task._id}`, { title: newTitle.trim() })
+
+  const updated = await patch(`/api/cards/${task._id}`, {
+    title: newTitle.trim(),
+    description: newDescription || '',
+    priority: newPriority || 'Medium',
+    type: newType || 'Task'
+  })
+
   task.title = updated.title
+  task.description = updated.description
+  task.priority = updated.priority
+  task.type = updated.type
 }
+
 
 async function deleteCard(column, task) {
   if (!confirm('Supprimer cette carte ?')) return
@@ -174,7 +232,7 @@ async function dropTask(targetColumnId) {
   fromCol.tasks = fromCol.tasks.filter(t => t._id !== draggedTask._id)
   const toCol = columns.find(c => c._id === targetColumnId)
   toCol.tasks.push(draggedTask)
-  await patch(`/api/cards/${draggedTask._id}`, { columnId: targetColumnId })
+  await patch(`/api/cards/${draggedTask._id}`, { tocolumnId: targetColumnId })
   draggedTask = null
   draggedFromColumnId = null
 }

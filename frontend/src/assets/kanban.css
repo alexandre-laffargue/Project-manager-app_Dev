@@ -1,5 +1,5 @@
 .kanban-page {
-    margin-left: 220px; 
+    margin-left: 220px;
     padding: 24px;
 }
 
@@ -64,5 +64,45 @@ button:active {
   padding: 4px 8px;
   font-size: 0.85rem;
 }
+
+
+.task {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 8px;
+  background-color: #fff;
+}
+
+.task-title {
+  margin: 0 0 4px 0;
+  font-weight: bold;
+}
+
+.task-desc {
+  margin: 0 0 6px 0;
+  font-size: 0.9em;
+  color: #555;
+}
+
+.task-meta {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.badge {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: bold;
+  color: #fff;
+}
+
+.badge.priority.low { background-color: #6c757d; }
+.badge.priority.medium { background-color: #ffc107; color: #000; }
+.badge.priority.high { background-color: #dc3545; }
+
+.badge.type { background-color: #17a2b8; }
 
 

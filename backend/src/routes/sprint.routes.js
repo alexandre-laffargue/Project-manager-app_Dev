@@ -14,3 +14,4 @@ router.delete('/:id', deleteSprint)
 
 module.exports = router
 
+module.exports = router
