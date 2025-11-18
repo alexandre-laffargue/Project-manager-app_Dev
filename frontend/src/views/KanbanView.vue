@@ -21,16 +21,20 @@
             <button @click="deleteColumn(column, index)">Supprimer</button>
           </div>
 
-          <div class="tasks-list">
-            <div class="task" v-for="task in column.tasks" :key="task._id">
-              {{ task.title }}
-            </div>
+        <div class="tasks-list">
+          <div class="add-card">
+            <input v-model="newCardTitle[column._id]" placeholder="Nouvelle carte" />
+            <button @click="addCard(column)">Ajouter</button>
+       </div>
 
-            <div class="add-card">
-              <input v-model="newCardTitle[column._id]" placeholder="Nouvelle carte" />
-              <button @click="addCard(column)">Ajouter</button>
-            </div>
+        <div class="task" v-for="task in column.tasks" :key="task._id">
+          <span>{{ task.title }}</span>
+          <div class="task-actions">
+            <button @click="editCard(column, task)">Modifier</button>
+            <button @click="deleteCard(column, task)">X</button>
           </div>
+        </div>
+        </div>
         </div>
       </div>
     </div>
@@ -122,6 +126,21 @@ async function addCard (column) {
   column.tasks.push(created)
   newCardTitle[column._id] = ''
 }
+
+async function editCard (column, task) {
+  const newTitle = prompt('Modifier la carte :', task.title)
+  if (!newTitle?.trim()) return
+  const updated = await patch(`/api/cards/${task._id}`, { title: newTitle.trim() })
+  task.title = updated.title
+}
+
+async function deleteCard(column, task) {
+  if (!confirm('Supprimer cette carte ?')) return
+  await del(`/api/cards/${task._id}`)
+  const index = column.tasks.findIndex(t => t._id === task._id)
+  if (index !== -1) column.tasks.splice(index, 1)
+}
+
 
 onMounted(() => {
   loadBoardData().catch(err => console.error('failed to load board data', err))
