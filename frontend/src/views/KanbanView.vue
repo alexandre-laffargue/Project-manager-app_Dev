@@ -14,32 +14,46 @@
       </div>
 
       <div class="kanban-board">
-        <div class="column" v-for="(column, index) in columns" :key="column._id">
+        <div
+          class="column"
+          v-for="column in columns"
+          :key="column._id"
+          @dragover.prevent
+          @drop="dropTask(column._id)"
+        >
           <div class="column-header">
             <h2>{{ column.title }}</h2>
             <button @click="renameColumn(column)">Renommer</button>
-            <button @click="deleteColumn(column, index)">Supprimer</button>
+            <button @click="deleteColumn(column)">Supprimer</button>
           </div>
 
-        <div class="tasks-list">
-          <div class="add-card">
-            <input v-model="newCardTitle[column._id]" placeholder="Nouvelle carte" />
-            <button @click="addCard(column)">Ajouter</button>
-       </div>
+          <div class="tasks-list">
+            <!-- Ajouter une carte -->
+            <div class="add-card">
+              <input v-model="newCardTitle[column._id]" placeholder="Nouvelle carte" />
+              <button @click="addCard(column)">Ajouter</button>
+            </div>
 
-        <div class="task" v-for="task in column.tasks" :key="task._id">
-          <span>{{ task.title }}</span>
-          <div class="task-actions">
-            <button @click="editCard(column, task)">Modifier</button>
-            <button @click="deleteCard(column, task)">X</button>
+            <div
+              class="task"
+              v-for="task in column.tasks"
+              :key="task._id"
+              draggable="true"
+              @dragstart="startDrag(task, column._id)"
+            >
+              <span>{{ task.title }}</span>
+              <div class="task-actions">
+                <button @click="editCard(column, task)">Modifier</button>
+                <button @click="deleteCard(column, task)">X</button>
+              </div>
+            </div>
           </div>
-        </div>
-        </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
@@ -54,6 +68,9 @@ const columns = reactive([])
 const newColumnName = ref('')
 const newCardTitle = reactive({})
 let currentBoardId = null
+let draggedTask = null
+let draggedFromColumnId = null
+
 
 function slugify (text) {
   return text.toString().toLowerCase().trim()
@@ -140,6 +157,28 @@ async function deleteCard(column, task) {
   const index = column.tasks.findIndex(t => t._id === task._id)
   if (index !== -1) column.tasks.splice(index, 1)
 }
+
+function startDrag(task, columnId) {
+  draggedTask = task
+  draggedFromColumnId = columnId
+}
+
+async function dropTask(targetColumnId) {
+  if (!draggedTask || !draggedFromColumnId) return
+  if (draggedFromColumnId === targetColumnId) {
+    draggedTask = null
+    draggedFromColumnId = null
+    return
+  }
+  const fromCol = columns.find(c => c._id === draggedFromColumnId)
+  fromCol.tasks = fromCol.tasks.filter(t => t._id !== draggedTask._id)
+  const toCol = columns.find(c => c._id === targetColumnId)
+  toCol.tasks.push(draggedTask)
+  await patch(`/api/cards/${draggedTask._id}`, { columnId: targetColumnId })
+  draggedTask = null
+  draggedFromColumnId = null
+}
+
 
 
 onMounted(() => {
