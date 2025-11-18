@@ -11,7 +11,7 @@ const routes = [
     children: [
       { path: '', redirect: '/kanban' },
       { path: 'kanban', component: KanbanView },
-      { path: 'backlog', component: () => import('../views/KanbanView.vue') },
+      { path: 'backlog', component: () => import('../views/BacklogView.vue') },
       { path: 'chronologie', component: () => import('../views/KanbanView.vue') },
     ],
   },
