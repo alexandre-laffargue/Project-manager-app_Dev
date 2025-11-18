@@ -1,82 +1,75 @@
 const Joi = require('joi')
 const Sprint = require('../models/Sprint')
-const Board = require('../models/Board')
 
 const createSprintSchema = Joi.object({
   name: Joi.string().min(1).required(),
-  startDate: Joi.date().required(),
-  endDate: Joi.date().required(),
-  objective: Joi.string().allow('').default('')
+  startDate: Joi.date().allow(null),
+  endDate: Joi.date().allow(null),
+  objective: Joi.string().allow('').default(''),
+  issues: Joi.array().items(Joi.string()).optional(),
+  boardId: Joi.string().optional().allow(null)
 })
 
 const patchSprintSchema = Joi.object({
-  name: Joi.string().min(1),
-  startDate: Joi.date(),
-  endDate: Joi.date(),
-  objective: Joi.string().allow('')
+  name: Joi.string().min(1).optional(),
+  startDate: Joi.date().optional().allow(null),
+  endDate: Joi.date().optional().allow(null),
+  objective: Joi.string().optional().allow(''),
+  issues: Joi.array().items(Joi.string()).optional(),
+  boardId: Joi.string().optional().allow(null)
 }).min(1)
 
-async function createSprint(req, res, next) {
+const listSprints = async (req, res) => {
   try {
-    const { boardId } = req.params
-    const payload = await createSprintSchema.validateAsync(req.body)
-
-    if (boardId) {
-      const board = await Board.findOne({ _id: boardId, ownerId: req.user.sub })
-      if (!board) return res.status(404).json({ error: 'Board not found' })
-      payload.boardId = boardId
-    }
-
-    const sprint = await Sprint.create({ ...payload, ownerId: req.user.sub })
-    res.status(201).json(sprint)
+    const ownerId = req.user.sub
+    const filter = { ownerId }
+    if (req.query.boardId) filter.boardId = req.query.boardId
+    const sprints = await Sprint.find(filter).sort({ createdAt: -1 })
+    return res.json(sprints)
   } catch (err) {
-    if (err.isJoi) err.status = 400
-    next(err)
+    return res.status(500).json({ error: err.message })
   }
 }
 
-async function listSprints(req, res, next) {
+const createSprint = async (req, res) => {
+  const { error } = createSprintSchema.validate(req.body)
+  if (error) return res.status(400).json({ error: error.details[0].message })
   try {
-    const { boardId } = req.query
-    const query = { ownerId: req.user.sub }
-    if (boardId) query.boardId = boardId
-
-    const sprints = await Sprint.find(query).sort({ startDate: 1 })
-    res.json(sprints)
-  } catch (err) {
-    next(err)
-  }
-}
-
-async function patchSprint(req, res, next) {
-  try {
-    const { id } = req.params
-    const sprint = await Sprint.findById(id)
-    if (!sprint) return res.status(404).json({ error: 'Sprint not found' })
-    if (sprint.ownerId.toString() !== req.user.sub) return res.status(403).json({ error: 'Forbidden' })
-
-    const patch = await patchSprintSchema.validateAsync(req.body)
-    Object.assign(sprint, patch)
+    const ownerId = req.user.sub
+    const payload = { ...req.body, ownerId }
+    const sprint = new Sprint(payload)
     await sprint.save()
-    res.json(sprint)
+    return res.status(201).json(sprint)
   } catch (err) {
-    if (err.isJoi) err.status = 400
-    next(err)
+    return res.status(500).json({ error: err.message })
   }
 }
 
-async function deleteSprint(req, res, next) {
+const patchSprint = async (req, res) => {
+  const { error } = patchSprintSchema.validate(req.body)
+  if (error) return res.status(400).json({ error: error.details[0].message })
   try {
-    const { id } = req.params
-    const sprint = await Sprint.findById(id)
+    const sprint = await Sprint.findById(req.params.id)
     if (!sprint) return res.status(404).json({ error: 'Sprint not found' })
     if (sprint.ownerId.toString() !== req.user.sub) return res.status(403).json({ error: 'Forbidden' })
-
-    await sprint.deleteOne()
-    res.status(204).end()
+    Object.assign(sprint, req.body)
+    await sprint.save()
+    return res.json(sprint)
   } catch (err) {
-    next(err)
+    return res.status(500).json({ error: err.message })
   }
 }
 
-module.exports = { createSprint, listSprints, patchSprint, deleteSprint }
+const deleteSprint = async (req, res) => {
+  try {
+    const sprint = await Sprint.findById(req.params.id)
+    if (!sprint) return res.status(404).json({ error: 'Sprint not found' })
+    if (sprint.ownerId.toString() !== req.user.sub) return res.status(403).json({ error: 'Forbidden' })
+    await sprint.deleteOne()
+    return res.status(204).send()
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
+  }
+}
+
+module.exports = { listSprints, createSprint, patchSprint, deleteSprint }

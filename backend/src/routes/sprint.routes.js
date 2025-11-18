@@ -1,11 +1,16 @@
-const express = require('express');
-const { createSprint, listSprints } = require('../controllers/sprint.controller');
-const { requireAuth } = require('../middlewares/auth');
+const express = require('express')
+const { listSprints, createSprint, patchSprint, deleteSprint } = require('../controllers/sprint.controller')
+const { requireAuth } = require('../middlewares/auth')
 
-const router = express.Router();
+const router = express.Router()
 
-router.get('/', requireAuth, listSprints);
-router.post('/', requireAuth, createSprint);
+// protect all sprint routes
+router.use(requireAuth)
 
-module.exports = router;
+router.get('/', listSprints)
+router.post('/', createSprint)
+router.patch('/:id', patchSprint)
+router.delete('/:id', deleteSprint)
+
+module.exports = router
 

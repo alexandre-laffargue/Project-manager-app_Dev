@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "test": "echo \"no tests yet\"",
+    "test": "vitest",
     "test:watch": "vitest"
   },
   "keywords": [],
@@ -32,6 +32,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.6.0",
+    "mongodb-memory-server": "^8.16.1",
     "supertest": "^7.1.4",
     "vitest": "^4.0.7"
   }

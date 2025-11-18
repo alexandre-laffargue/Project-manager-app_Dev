@@ -6,7 +6,8 @@ const path = require('path')
 
 dotenv.config()
 
-
+// If Docker secrets are used, the secret will be available at /run/secrets/jwt_secret
+// Prefer the secret file over the env var if present (more secure in orchestrators).
 try {
   const secretPath = path.join('/run/secrets', 'jwt_secret')
   if (fs.existsSync(secretPath)) {
@@ -14,6 +15,7 @@ try {
     if (s) process.env.JWT_SECRET = s
   }
 } catch (e) {
+  // non-fatal; fallback to existing process.env values
 }
 
 const PORT = process.env.PORT || 3000

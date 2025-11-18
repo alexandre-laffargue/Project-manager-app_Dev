@@ -25,7 +25,7 @@ export const useAuthStore = defineStore('auth', {
         throw new Error("Adresse e-mail invalide")
       }
       if (!password || password.length < 8) {
-        throw new Error('Mot de passe invalide (minimum 6 caractères)')
+        throw new Error('Mot de passe invalide (minimum 8 caractères)')
       }
 
       // Call backend

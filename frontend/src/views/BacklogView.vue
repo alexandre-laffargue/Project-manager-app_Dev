@@ -7,7 +7,6 @@
     </div>
 
     <div v-else>
-      <!-- Formulaire création sprint -->
       <div class="backlog-controls">
         <h2>Créer un sprint</h2>
         <input v-model="newSprint.name" placeholder="Nom du sprint" />
