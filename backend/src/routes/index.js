@@ -11,8 +11,8 @@ const router = express.Router()
 
 router.use('/auth', auth)
 router.use('/boards', board)
-router.use('/', column)
-router.use('/', card)
+router.use('/columns', column)
+router.use('/cards', card)
 router.use('/sprints', sprint)
 
 

@@ -21,7 +21,7 @@
       <div v-if="sprints.length" class="sprints-list">
         <div class="sprint" v-for="sprint in sprints" :key="sprint._id">
           <h3>{{ sprint.name }}</h3>
-          <p><strong>Dates :</strong> {{ sprint.startDate }} → {{ sprint.endDate }}</p>
+          <p><strong>Dates :</strong> {{ formatDate(sprint.startDate) }} → {{ formatDate(sprint.endDate) }}</p>
           <p><strong>Objectif :</strong> {{ sprint.objective }}</p>
           <div class="sprint-actions">
             <button @click="editSprint(sprint)">Modifier</button>
@@ -46,7 +46,7 @@ import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 const isAuthenticated = ref(false)
 
-const sprints = reactive([]) // <-- réactif pour afficher immédiatement
+const sprints = reactive([])
 const newSprint = reactive({
   name: '',
   startDate: '',
@@ -71,9 +71,8 @@ async function createSprint() {
     const payload = { ...newSprint }
     const created = await post('/api/sprints', payload)
 
-    // Assure-toi qu'il y a un identifiant pour le v-for
     const sprintToAdd = {
-      _id: created._id || created.id || Date.now().toString(), // fallback si l'API ne renvoie pas _id
+      _id: created._id || created.id || Date.now().toString(),
       name: created.name || payload.name,
       startDate: created.startDate || payload.startDate,
       endDate: created.endDate || payload.endDate,
@@ -81,9 +80,7 @@ async function createSprint() {
       issues: created.issues || []
     }
 
-    sprints.push(sprintToAdd) // <-- ajout immédiat dans l'array réactif
-
-    // reset formulaire
+    sprints.push(sprintToAdd)
     newSprint.name = ''
     newSprint.startDate = ''
     newSprint.endDate = ''
@@ -95,11 +92,24 @@ async function createSprint() {
 
 
 async function editSprint(sprint) {
-  const name = prompt('Nouveau nom du sprint :', sprint.name)
-  if (!name?.trim()) return
-  const updated = await patch(`/api/sprints/${sprint._id}`, { name })
+  const newName = prompt("Nom du sprint :", sprint.name)
+  const newStart = prompt("Date de début (YYYY-MM-DD) :", sprint.startDate)
+  const newEnd = prompt("Date de fin (YYYY-MM-DD) :", sprint.endDate)
+  const newObjective = prompt("Objectif :", sprint.objective)
+  if (!newName?.trim() || !newStart || !newEnd) return
+  const updated = await patch(`/api/sprints/${sprint._id}`, {
+    name: newName,
+    startDate: newStart,
+    endDate: newEnd,
+    objective: newObjective
+  })
+
   sprint.name = updated.name
+  sprint.startDate = updated.startDate
+  sprint.endDate = updated.endDate
+  sprint.objective = updated.objective
 }
+
 
 async function deleteSprint(sprint) {
   if (!confirm(`Supprimer le sprint "${sprint.name}" ?`)) return
@@ -107,6 +117,16 @@ async function deleteSprint(sprint) {
   const index = sprints.findIndex(s => s._id === sprint._id)
   if (index !== -1) sprints.splice(index, 1)
 }
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 
 onMounted(() => {
   loadBacklog().catch(err => console.error(err))
