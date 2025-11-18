@@ -11,7 +11,9 @@ const createCardSchema = Joi.object({
   position: Joi.number().integer().min(0).default(0),
   labels: Joi.array().items(Joi.string()).default([]),
   assignees: Joi.array().items(Joi.string()).default([]),
-  dueDate: Joi.date().allow(null).default(null)
+  dueDate: Joi.date().allow(null).default(null),
+  priority: Joi.string().valid('Low', 'Medium', 'High').default('Medium'),
+  type: Joi.string().valid('Bug', 'Feature', 'Task').default('Task')
 })
 
 async function createCard (req, res, next) {
@@ -49,6 +51,8 @@ const patchCardSchema = Joi.object({
   description: Joi.string().allow(''),
   labels: Joi.array().items(Joi.string()),
   assignees: Joi.array().items(Joi.string()),
+  priority: Joi.string().valid('Low', 'Medium', 'High'),
+  type: Joi.string().valid('Bug', 'Feature', 'Task'),
   dueDate: Joi.date().allow(null),
 
   toColumnId: Joi.string(),
