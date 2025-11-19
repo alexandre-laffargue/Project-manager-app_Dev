@@ -52,4 +52,24 @@ describe('LoginView', () => {
     expect(mockLogin).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123', remember: false })
     expect(mockPush).toHaveBeenCalledWith('/kanban')
   })
+
+  it('shows error when email is invalid and does not call login', async () => {
+    // setup mocks
+    mockAuthStore({ login: mockLogin })
+    mockRouter({ push: mockPush })
+
+    const { default: LoginView } = await import('../views/LoginView.vue')
+    const wrapper = mount(LoginView)
+
+    const email = wrapper.find('#email')
+    const pwd = wrapper.find('#password')
+
+    await email.setValue('bad-email')
+    await pwd.setValue('password123')
+
+    await wrapper.find('form').trigger('submit.prevent')
+
+    expect(wrapper.text()).toContain("L'adresse e-mail n'est pas valide.")
+    expect(mockLogin).not.toHaveBeenCalled()
+  })
 })

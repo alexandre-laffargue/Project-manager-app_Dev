@@ -177,6 +177,12 @@ async function addCard(column) {
     position: column.tasks.length
   }
 
+  // sanitize priority and type to allowed values
+  const allowedPriorities = ['Low', 'Medium', 'High']
+  const allowedTypes = ['Bug', 'Feature', 'Task']
+  if (!allowedPriorities.includes(payload.priority)) payload.priority = 'Medium'
+  if (!allowedTypes.includes(payload.type)) payload.type = 'Task'
+
   const created = await post(`/api/boards/${currentBoardId}/cards`, payload)
   column.tasks.push(created)
 
@@ -195,11 +201,17 @@ async function editCard(column, task) {
 
   if (!newTitle?.trim()) return
 
+  // sanitize priority/type before sending
+  const allowedPriorities = ['Low', 'Medium', 'High']
+  const allowedTypes = ['Bug', 'Feature', 'Task']
+  const sendPriority = allowedPriorities.includes(newPriority) ? newPriority : 'Medium'
+  const sendType = allowedTypes.includes(newType) ? newType : 'Task'
+
   const updated = await patch(`/api/cards/${task._id}`, {
     title: newTitle.trim(),
     description: newDescription || '',
-    priority: newPriority || 'Medium',
-    type: newType || 'Task'
+    priority: sendPriority,
+    type: sendType
   })
 
   task.title = updated.title

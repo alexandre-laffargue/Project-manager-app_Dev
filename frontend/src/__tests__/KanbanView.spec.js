@@ -15,20 +15,20 @@ describe('KanbanView', () => {
   })
 
   it('shows login required message when not authenticated', async () => {
-  // mock auth store (no token)
-  mockAuthStore({ loadFromStorage: mockLoad, token: null })
-  // mock api (no calls expected but safe)
-  mockApi({ get: mockGet, post: mockPost, patch: mockPatch, del: mockDel })
+    // mock auth store (no token)
+    mockAuthStore({ loadFromStorage: mockLoad, token: null })
+    // mock api (no calls expected but safe)
+    mockApi({ get: mockGet, post: mockPost, patch: mockPatch, del: mockDel })
 
-  const { default: KanbanView } = await import('../views/KanbanView.vue')
+    const { default: KanbanView } = await import('../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
     expect(wrapper.text()).toContain('Vous devez être connecté(e) pour accéder au tableau Kanban.')
   })
 
   it('loads board when authenticated and renders columns and tasks', async () => {
-  // mock modules to simulate authenticated user and API responses
-  mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
+    // mock modules to simulate authenticated user and API responses
+    mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     // sample data returned by API
     const board = { _id: 'board1', name: 'My board' }
     const cols = [{ _id: 'col1', title: 'To Do' }, { _id: 'col2', title: 'Done' }]
@@ -41,17 +41,17 @@ describe('KanbanView', () => {
       return Promise.resolve([])
     })
 
-  // mock api module after setting mockGet
-  mockApi({ get: mockGet, post: mockPost, patch: mockPatch, del: mockDel })
+    // mock api module after setting mockGet
+    mockApi({ get: mockGet, post: mockPost, patch: mockPatch, del: mockDel })
 
-  // import component after mocks
-  const { default: KanbanView } = await import('../views/KanbanView.vue')
+    // import component after mocks
+    const { default: KanbanView } = await import('../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
-  // wait for async onMounted flow (allow promise microtasks and timers to flush)
-  await Promise.resolve()
-  await new Promise((r) => setTimeout(r, 0))
-  await new Promise((r) => setTimeout(r, 0))
+    // wait for async onMounted flow (allow promise microtasks and timers to flush)
+    await Promise.resolve()
+    await new Promise((r) => setTimeout(r, 0))
+    await new Promise((r) => setTimeout(r, 0))
 
     // assert columns and task appear
     expect(wrapper.text()).toContain('To Do')

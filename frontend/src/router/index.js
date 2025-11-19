@@ -12,7 +12,7 @@ const routes = [
       { path: '', redirect: '/kanban' },
       { path: 'kanban', component: KanbanView },
       { path: 'backlog', component: () => import('../views/BacklogView.vue') },
-      { path: 'chronologie', component: () => import('../views/KanbanView.vue') },
+      { path: 'chronologie', component: () => import('../views/ChronologieView.vue') },
     ],
   },
   { path: '/login', component: LoginView },

@@ -1,10 +1,10 @@
 // Helpers to centralize test mocks for frontend tests
 import { vi } from 'vitest'
 
-export function mockAuthStore({ login = null, register = null, token = null, loadFromStorage = () => {} } = {}) {
+export function mockAuthStore({ login = null, register = null, token = null, loadFromStorage = () => {}, logout = null, isAuthenticated = false, user = null } = {}) {
   // call vi.mock synchronously so it happens before module imports in tests
   vi.doMock('../../stores/auth', () => ({
-    useAuthStore: () => ({ login, register, token, loadFromStorage })
+    useAuthStore: () => ({ login, register, token, loadFromStorage, logout, isAuthenticated, user })
   }))
 }
 
