@@ -35,8 +35,12 @@ async function moveCard ({ boardId, cardId, toColumnId, toPosition = 0 }) {
   const clamped = Math.max(0, Math.min(toPosition, toCards.length))
   toCards.splice(clamped, 0, card)
   await Promise.all(toCards.map((c, i) => {
+    const origCol = c.columnId && c.columnId.toString ? c.columnId.toString() : c.columnId
+    const needPos = c.position !== i
+    const needCol = origCol !== toColumnId.toString()
     c.columnId = toColumnId
-    if (c.position !== i) { c.position = i; return c.save() }
+    if (needPos) c.position = i
+    if (needPos || needCol) return c.save()
     return null
   }))
 

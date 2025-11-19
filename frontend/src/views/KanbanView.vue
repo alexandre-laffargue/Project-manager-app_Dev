@@ -244,7 +244,7 @@ async function dropTask(targetColumnId) {
   fromCol.tasks = fromCol.tasks.filter(t => t._id !== draggedTask._id)
   const toCol = columns.find(c => c._id === targetColumnId)
   toCol.tasks.push(draggedTask)
-  await patch(`/api/cards/${draggedTask._id}`, { tocolumnId: targetColumnId })
+  await patch(`/api/cards/${draggedTask._id}`, { toColumnId: targetColumnId })
   draggedTask = null
   draggedFromColumnId = null
 }

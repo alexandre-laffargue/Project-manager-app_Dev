@@ -302,7 +302,7 @@ describe('Kanban actions (columns & cards)', () => {
     await new Promise((r) => setTimeout(r, 0))
 
     // patch should have been called to move the card
-    expect(mockPatch).toHaveBeenCalledWith(`/api/cards/${cards[0]._id}`, expect.objectContaining({ tocolumnId: 'col2' }))
+    expect(mockPatch).toHaveBeenCalledWith(`/api/cards/${cards[0]._id}`, expect.objectContaining({ toColumnId: 'col2' }))
 
     // card should now appear in target column
     const targetText = target.text()
