@@ -13,6 +13,18 @@ jobs:
   backend:
     name: Backend (Node)
     runs-on: ubuntu-latest
+    env:
+      MONGODB_URI: "mongodb://127.0.0.1:27017/test"
+    services:
+      mongodb:
+        image: mongo:6.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongosh --eval 'db.adminCommand({ ping: 1 })' || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     defaults:
       run:
         working-directory: backend
@@ -27,8 +39,24 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
+
+
       - name: Install
         run: npm ci
+
+      - name: Wait for MongoDB
+        run: |
+          echo "Waiting for MongoDB on 127.0.0.1:27017..."
+          for i in {1..30}; do
+            if (echo > /dev/tcp/127.0.0.1/27017) >/dev/null 2>&1; then
+              echo "MongoDB is up"
+              exit 0
+            fi
+            echo "...waiting ($i)"
+            sleep 1
+          done
+          echo "Timed out waiting for MongoDB" >&2
+          exit 1
 
       - name: Lint (si dispo)
         run: npm run lint --if-present
