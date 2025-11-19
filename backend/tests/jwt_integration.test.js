@@ -4,14 +4,22 @@ import mongoose from 'mongoose'
 
 let app
 let token
+let usingExternalMongo = false
+let mongod
 
 beforeAll(async () => {
   process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret'
   process.env.JWT_EXPIRES_IN = '1h'
 
-  const { MongoMemoryServer } = await import('mongodb-memory-server')
-  const mongod = await MongoMemoryServer.create()
-  await mongoose.connect(mongod.getUri())
+  // support external MongoDB via MONGODB_URI (useful for CI)
+  if (process.env.MONGODB_URI) {
+    await mongoose.connect(process.env.MONGODB_URI)
+    usingExternalMongo = true
+  } else {
+    const { MongoMemoryServer } = await import('mongodb-memory-server')
+    mongod = await MongoMemoryServer.create()
+    await mongoose.connect(mongod.getUri())
+  }
 
   const { createRequire } = await import('module')
   const req = createRequire(import.meta.url)
@@ -20,8 +28,13 @@ beforeAll(async () => {
   const { signJwt } = req('../src/utils/jwt.js')
   token = signJwt({ sub: new mongoose.Types.ObjectId().toString(), email: 'int@example.com' })
 
-  const mod = await import('../src/app.js')
-  app = mod.default || mod
+  // require app via CommonJS to avoid ESM/CJS interop issues
+  app = req('../src/app.js')
+})
+
+afterAll(async () => {
+  await mongoose.disconnect()
+  if (!usingExternalMongo && mongod) await mongod.stop()
 })
 
 describe('JWT integration', () => {

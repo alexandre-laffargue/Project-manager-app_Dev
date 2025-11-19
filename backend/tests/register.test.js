@@ -18,8 +18,9 @@ beforeAll(async () => {
 	UserModel.findOne = (...args) => mockFindOne(...args)
 	UserModel.create = (...args) => mockCreate(...args)
 
-	const mod = await import('../src/app.js')
-	app = mod.default || mod
+	const { createRequire } = await import('module')
+	const req = createRequire(import.meta.url)
+	app = req('../src/app.js')
 })
 
 describe('POST /api/auth/register', () => {

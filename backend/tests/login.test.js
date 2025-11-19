@@ -21,8 +21,7 @@ beforeAll(async () => {
   const UserModel = req('../src/models/User.js')
   UserModel.findOne = (...args) => mockFindOne(...args)
 
-  const mod = await import('../src/app.js')
-  app = mod.default || mod
+  app = req('../src/app.js')
 })
 
 describe('POST /api/auth/login', () => {

@@ -21,8 +21,8 @@ beforeAll(async () => {
   Board.create = (...args) => mockBoardCreate(...args)
   Board.find = (...args) => mockBoardFind(...args)
 
-  const mod = await import('../src/app.js')
-  app = mod.default || mod
+  // require app via CommonJS to avoid ESM/CJS interop issues in tests
+  app = req('../src/app.js')
 })
 
 beforeEach(() => {

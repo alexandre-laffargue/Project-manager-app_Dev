@@ -5,12 +5,20 @@ import mongoose from 'mongoose'
 let mongod
 let app
 let OWNER_ID
+let usingExternalMongo = false
 
 beforeAll(async () => {
-  // start in-memory mongo
-  const { MongoMemoryServer } = await import('mongodb-memory-server')
-  mongod = await MongoMemoryServer.create()
-  const uri = mongod.getUri()
+  // prefer external MongoDB if MONGODB_URI is provided (useful in CI)
+  let uri
+  if (process.env.MONGODB_URI) {
+    uri = process.env.MONGODB_URI
+    usingExternalMongo = true
+  } else {
+    // start in-memory mongo
+    const { MongoMemoryServer } = await import('mongodb-memory-server')
+    mongod = await MongoMemoryServer.create()
+    uri = mongod.getUri()
+  }
 
   // connect mongoose to the in-memory server
   await mongoose.connect(uri)
@@ -25,13 +33,15 @@ beforeAll(async () => {
   auth.requireAuth = (req2, res, next) => { req2.user = { sub: OWNER_ID }; next() }
 
   // import app after DB and middleware patched
-  const mod = await import('../src/app.js')
-  app = mod.default || mod
+  // require app (reuse the same require helper) and import express app
+  app = req('../src/app.js')
 })
 
 afterAll(async () => {
   await mongoose.disconnect()
-  if (mongod) await mongod.stop()
+  if (!usingExternalMongo) {
+    if (mongod) await mongod.stop()
+  }
 })
 
 beforeEach(async () => {

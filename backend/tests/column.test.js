@@ -35,8 +35,7 @@ beforeAll(async () => {
   const Card = req('../src/models/Card.js')
   Card.deleteMany = (...args) => mockCardDeleteMany(...args)
 
-  const mod = await import('../src/app.js')
-  app = mod.default || mod
+  app = req('../src/app.js')
 })
 
 beforeEach(() => {

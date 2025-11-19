@@ -38,8 +38,7 @@ beforeAll(async () => {
   const moveUtil = req('../src/utils/move.js')
   moveUtil.moveCard = (...args) => mockMoveCard(...args)
 
-  const mod = await import('../src/app.js')
-  app = mod.default || mod
+  app = req('../src/app.js')
 })
 
 beforeEach(() => {
