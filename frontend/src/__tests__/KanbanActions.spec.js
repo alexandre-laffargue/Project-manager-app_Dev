@@ -107,7 +107,7 @@ describe('Kanban actions (columns & cards)', () => {
       if (url === `/api/boards/${board._id}/cards`) return Promise.resolve(existingCards)
       return Promise.resolve([])
     })
-    const mockPost = vi.fn((url, payload) => {
+    const mockPost = vi.fn((url) => {
       if (url === `/api/boards/${board._id}/cards`) return Promise.resolve(createdCard)
       return Promise.resolve({})
     })
@@ -172,7 +172,7 @@ describe('Kanban actions (columns & cards)', () => {
       if (url === `/api/boards/${board._id}/cards`) return Promise.resolve(existingCards)
       return Promise.resolve([])
     })
-    const mockPost = vi.fn((url, payload) => {
+    const mockPost = vi.fn((url) => {
       if (url === `/api/boards/${board._id}/cards`) return Promise.resolve(createdCard)
       return Promise.resolve({})
     })
