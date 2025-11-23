@@ -8,7 +8,9 @@ const issueSchema = new mongoose.Schema(
     description: { type: String, default: '' },
     type: { type: String, enum: ['Bug', 'Feature', 'Task'], default: 'Task' },
     priority: { type: String, enum: ['Low', 'Medium', 'High'], default: 'Medium' },
-    position: { type: Number, default: 0 }
+    position: { type: Number, default: 0 },
+    startDate: { type: Date, default: null },
+    endDate: { type: Date, default: null }
   },
   { timestamps: true }
 )

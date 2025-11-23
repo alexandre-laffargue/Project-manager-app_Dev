@@ -86,4 +86,20 @@ const startSprint = async (req, res) => {
   }
 }
 
-module.exports = { listSprints, createSprint, patchSprint, deleteSprint, startSprint }
+const closeSprint = async (req, res) => {
+  try {
+    const sprint = await Sprint.findById(req.params.id)
+    if (!sprint) return res.status(404).json({ error: 'Sprint not found' })
+    if (sprint.ownerId.toString() !== req.user.sub) return res.status(403).json({ error: 'Forbidden' })
+    if (sprint.endDate) return res.status(400).json({ error: 'Sprint already closed' })
+    // allow optional endDate in body
+    if (req.body && req.body.endDate) sprint.endDate = new Date(req.body.endDate)
+    else sprint.endDate = new Date()
+    await sprint.save()
+    return res.json(sprint)
+  } catch (err) {
+    return res.status(500).json({ error: err.message })
+  }
+}
+
+module.exports = { listSprints, createSprint, patchSprint, deleteSprint, startSprint, closeSprint }

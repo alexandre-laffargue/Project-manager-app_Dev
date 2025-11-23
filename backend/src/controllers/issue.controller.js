@@ -79,4 +79,23 @@ async function patchMoveToSprint (req, res, next) {
   } catch (err) { if (err.isJoi) err.status = 400; next(err) }
 }
 
-module.exports = { createIssue, getIssues, patchReorder, patchMoveToSprint }
+const datesSchema = Joi.object({ startDate: Joi.date().allow(null), endDate: Joi.date().allow(null) })
+
+async function patchDates (req, res, next) {
+  try {
+    const payload = await datesSchema.validateAsync(req.body)
+    const issue = await Issue.findById(req.params.id)
+    if (!issue) return res.status(404).json({ error: 'Issue not found' })
+
+    // verify board ownership
+    const board = await Board.findOne({ _id: issue.boardId, ownerId: req.user.sub })
+    if (!board) return res.status(403).json({ error: 'Forbidden' })
+
+    issue.startDate = payload.startDate || null
+    issue.endDate = payload.endDate || null
+    await issue.save()
+    res.json(issue)
+  } catch (err) { if (err.isJoi) err.status = 400; next(err) }
+}
+
+module.exports = { createIssue, getIssues, patchReorder, patchMoveToSprint, patchDates }
