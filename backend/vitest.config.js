@@ -1,3 +1,14 @@
+import { config } from 'dotenv'
+import { resolve } from 'path'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+// Load .env.test file for test environment
+config({ path: resolve(__dirname, '.env.test') })
+
 export default {
 test: {
 	// Increase hook timeout to avoid beforeAll hooks timing out when tests run in parallel

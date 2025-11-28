@@ -40,13 +40,11 @@ services:
     restart: unless-stopped
     volumes:
       - mongo-data:/data/db
-    # Do not expose Mongo on the host by default. The backend accesses mongo
-    # through the internal Docker network using the service name `mongo`.
-    # If you need host access (e.g. MongoDB Compass), map a host port like "27018:27017".
-    # ports:
-    #   - "27017:27017"
+    # Expose Mongo on host port 27017 for local development and testing
+    ports:
+      - "27017:27017"
     healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5

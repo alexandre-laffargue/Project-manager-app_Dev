@@ -2,95 +2,9 @@ import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mockAuthStore, mockApi, resetTestMocks } from './utils/testUtils'
 
-describe('Kanban actions (columns & cards)', () => {
+describe('Kanban - Cards', () => {
   beforeEach(() => {
     resetTestMocks()
-  })
-
-  it('adds a column when user inputs a name and clicks add', async () => {
-    const mockLoad = vi.fn()
-    const board = { _id: 'board1', name: 'My board' }
-    const cols = []
-    const createdCol = { _id: 'col-new', title: 'New Col' }
-
-    const mockGet = vi.fn((url) => {
-      if (url === '/api/boards/me') return Promise.resolve([board])
-      if (url === `/api/boards/${board._id}/columns`) return Promise.resolve(cols)
-      if (url === `/api/boards/${board._id}/cards`) return Promise.resolve([])
-      return Promise.resolve([])
-    })
-    const mockPost = vi.fn((url) => {
-      if (url === `/api/boards/${board._id}/columns`) return Promise.resolve(createdCol)
-      return Promise.resolve({})
-    })
-
-    mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
-    mockApi({ get: mockGet, post: mockPost })
-
-    const { default: KanbanView } = await import('../views/KanbanView.vue')
-    const wrapper = mount(KanbanView)
-
-    // wait for initial load
-    await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
-
-    // set input and click add
-    const input = wrapper.find('.kanban-controls input')
-    await input.setValue('New Col')
-    const addBtn = wrapper.find('.kanban-controls button')
-    await addBtn.trigger('click')
-
-    // allow async updates
-    await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
-
-    // post should have been called with expected url and payload
-    expect(mockPost).toHaveBeenCalledWith(`/api/boards/${board._id}/columns`, expect.objectContaining({ title: 'New Col' }))
-
-    // new column title should appear and input cleared
-    expect(wrapper.text()).toContain('New Col')
-    expect((wrapper.find('.kanban-controls input').element.value)).toBe('')
-  })
-
-  it('deletes a column when confirmed', async () => {
-    const mockLoad = vi.fn()
-    const board = { _id: 'board1', name: 'My board' }
-    const cols = [{ _id: 'col1', title: 'To Delete' }]
-    const cards = []
-
-    const mockGet = vi.fn((url) => {
-      if (url === '/api/boards/me') return Promise.resolve([board])
-      if (url === `/api/boards/${board._id}/columns`) return Promise.resolve(cols)
-      if (url === `/api/boards/${board._id}/cards`) return Promise.resolve(cards)
-      return Promise.resolve([])
-    })
-    const mockDel = vi.fn(() => Promise.resolve())
-
-    mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
-    mockApi({ get: mockGet, del: mockDel })
-
-    // stub confirm to accept deletion
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
-
-    const { default: KanbanView } = await import('../views/KanbanView.vue')
-    const wrapper = mount(KanbanView)
-
-    await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
-
-    // find delete button for the column (second button in header)
-    const headerBtns = wrapper.findAll('.column .column-header button')
-    expect(headerBtns.length).toBeGreaterThan(0)
-    // trigger delete (button index 1 is 'Supprimer')
-    await headerBtns[1].trigger('click')
-
-    await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
-
-    expect(mockDel).toHaveBeenCalledWith(`/api/columns/${cols[0]._id}`)
-    expect(wrapper.text()).not.toContain('To Delete')
-
-    confirmSpy.mockRestore()
   })
 
   it('adds and then deletes a card', async () => {
@@ -210,7 +124,7 @@ describe('Kanban actions (columns & cards)', () => {
     expect(wrapper.find('.badge.type').text()).toBe('Bug')
   })
 
-  it('edits a card and updates its fields', async () => {
+  it('edits a card and updates its fields (inline editor)', async () => {
     const mockLoad = vi.fn()
     const board = { _id: 'board1', name: 'My board' }
     const cols = [{ _id: 'col1', title: 'Col A' }]
@@ -232,34 +146,57 @@ describe('Kanban actions (columns & cards)', () => {
     mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     mockApi({ get: mockGet, patch: mockPatch })
 
-    // provide invalid priority/type values first to test normalization, then valid ones
-    const promptValues = ['New Title', 'New desc', 'INVALID_PRIORITY', 'INVALID_TYPE']
-    const promptSpy = vi.spyOn(window, 'prompt').mockImplementation(() => promptValues.shift())
-
     const { default: KanbanView } = await import('../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
 
-    // click edit on the task
-    const editBtns = wrapper.findAll('.task .task-actions button')
-    // first button is Modifier
-    await editBtns[0].trigger('click')
+    // find the task wrapper by its initial title
+    const tasks = wrapper.findAll('.task')
+    const task = tasks.find((t) => t.text().includes('Old Title'))
+    expect(task).toBeTruthy()
+
+    // open inline editor by clicking the 'Modifier' button
+    const editBtns = task.findAll('.task-actions button')
+    const editBtn = editBtns.find((b) => b.text().includes('Modifier')) || editBtns[0]
+    await editBtn.trigger('click')
 
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
 
-    // the component should sanitize invalid priority/type to defaults
-    expect(mockPatch).toHaveBeenCalledWith(`/api/cards/${cards[0]._id}`, expect.objectContaining({ title: 'New Title', priority: 'Medium', type: 'Task' }))
+    // re-query the task area (DOM changed after editing)
+    const updatedTask = wrapper.findAll('.task').find((t) => t.text().includes('Old Title') || t.find('.edit-title').exists())
+    expect(updatedTask).toBeTruthy()
+
+    // fill inline editor fields
+    const titleInput = updatedTask.find('.edit-title')
+    const descInput = updatedTask.find('.edit-desc')
+    const selects = updatedTask.findAll('select')
+    await titleInput.setValue('New Title')
+    await descInput.setValue('New desc')
+    // set priority and type to valid values
+    if (selects.length >= 2) {
+      await selects[0].setValue('High')
+      await selects[1].setValue('Feature')
+    }
+
+    // click save (find button labeled 'Sauvegarder') inside the updated task
+    const saveBtn = updatedTask.findAll('button').find((b) => b.text().includes('Sauvegarder'))
+    expect(saveBtn.exists()).toBe(true)
+    await saveBtn.trigger('click')
+
+    await Promise.resolve()
+    await new Promise((r) => setTimeout(r, 0))
+
+    // patch should have been called with normalized payload
+    expect(mockPatch).toHaveBeenCalledWith(`/api/cards/${cards[0]._id}`, expect.objectContaining({ title: 'New Title', description: 'New desc', priority: 'High', type: 'Feature' }))
 
     // verify DOM updated
     expect(wrapper.text()).toContain('New Title')
     expect(wrapper.text()).toContain('New desc')
     expect(wrapper.find('.badge.priority').text()).toBe('High')
     expect(wrapper.find('.badge.type').text()).toBe('Feature')
-
-    promptSpy.mockRestore()
   })
 
   it('moves a card from one column to another', async () => {

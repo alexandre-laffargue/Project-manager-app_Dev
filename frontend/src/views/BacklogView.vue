@@ -20,7 +20,10 @@
       <div v-if="sprints.length" class="sprints-list">
         <div class="sprint" v-for="sprint in sprints" :key="sprint._id">
           <h3>{{ sprint.name }}</h3>
-          <p><strong>Dates :</strong> {{ formatDate(sprint.startDate) }} → {{ formatDate(sprint.endDate) }}</p>
+          <p>
+            <strong>Dates :</strong> {{ formatDate(sprint.startDate) }} →
+            {{ formatDate(sprint.endDate) }}
+          </p>
           <p><strong>Objectif :</strong> {{ sprint.objective }}</p>
           <div class="sprint-actions">
             <button @click="editSprint(sprint)">Modifier</button>
@@ -50,7 +53,7 @@ const newSprint = reactive({
   name: '',
   startDate: '',
   endDate: '',
-  objective: ''
+  objective: '',
 })
 
 async function loadBacklog() {
@@ -60,11 +63,11 @@ async function loadBacklog() {
 
   const data = await get('/api/sprints')
   if (!data) return
-  data.forEach(s => sprints.push({ ...s, issues: s.issues || [] }))
+  data.forEach((s) => sprints.push({ ...s, issues: s.issues || [] }))
 }
 
 async function createSprint() {
-  if (!newSprint.name.trim()) return alert("Le nom du sprint est obligatoire.")
+  if (!newSprint.name.trim()) return alert('Le nom du sprint est obligatoire.')
 
   try {
     const payload = { ...newSprint }
@@ -76,7 +79,7 @@ async function createSprint() {
       startDate: created.startDate || payload.startDate,
       endDate: created.endDate || payload.endDate,
       objective: created.objective || payload.objective,
-      issues: created.issues || []
+      issues: created.issues || [],
     }
 
     sprints.push(sprintToAdd)
@@ -89,18 +92,17 @@ async function createSprint() {
   }
 }
 
-
 async function editSprint(sprint) {
-  const newName = prompt("Nom du sprint :", sprint.name)
-  const newStart = prompt("Date de début (YYYY-MM-DD) :", sprint.startDate)
-  const newEnd = prompt("Date de fin (YYYY-MM-DD) :", sprint.endDate)
-  const newObjective = prompt("Objectif :", sprint.objective)
+  const newName = prompt('Nom du sprint :', sprint.name)
+  const newStart = prompt('Date de début (YYYY-MM-DD) :', sprint.startDate)
+  const newEnd = prompt('Date de fin (YYYY-MM-DD) :', sprint.endDate)
+  const newObjective = prompt('Objectif :', sprint.objective)
   if (!newName?.trim() || !newStart || !newEnd) return
   const updated = await patch(`/api/sprints/${sprint._id}`, {
     name: newName,
     startDate: newStart,
     endDate: newEnd,
-    objective: newObjective
+    objective: newObjective,
   })
 
   sprint.name = updated.name
@@ -109,11 +111,10 @@ async function editSprint(sprint) {
   sprint.objective = updated.objective
 }
 
-
 async function deleteSprint(sprint) {
   if (!confirm(`Supprimer le sprint "${sprint.name}" ?`)) return
   await del(`/api/sprints/${sprint._id}`)
-  const index = sprints.findIndex(s => s._id === sprint._id)
+  const index = sprints.findIndex((s) => s._id === sprint._id)
   if (index !== -1) sprints.splice(index, 1)
 }
 
@@ -126,8 +127,7 @@ function formatDate(dateStr) {
   return `${day}/${month}/${year}`
 }
 
-
 onMounted(() => {
-  loadBacklog().catch(err => console.error(err))
+  loadBacklog().catch((err) => console.error(err))
 })
 </script>
