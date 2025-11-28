@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import ChronologieView from '../views/ChronologieView.vue'
+import ChronologieView from '../../views/ChronologieView.vue'
 
 describe('ChronologieView', () => {
   it('renders title and placeholder content', () => {

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mockAuthStore, mockApi, resetTestMocks } from './utils/testUtils'
+import { mockAuthStore, mockApi, resetTestMocks } from '../utils/testUtils'
 
 describe('Backlog - sprint creation', () => {
   beforeEach(() => {
@@ -33,7 +33,7 @@ describe('Backlog - sprint creation', () => {
     mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     mockApi({ get: mockGet, post: mockPost })
 
-    const { default: BacklogView } = await import('../views/BacklogView.vue')
+    const { default: BacklogView } = await import('../../views/BacklogView.vue')
     const wrapper = mount(BacklogView)
 
     // wait for onMounted loadBacklog
@@ -95,7 +95,7 @@ describe('Backlog - sprint creation', () => {
     const prompts = ['Sprint 1 - Updated', '2025-11-21', '2025-11-28', 'Updated objective']
     const promptSpy = vi.spyOn(window, 'prompt').mockImplementation(() => prompts.shift())
 
-    const { default: BacklogView } = await import('../views/BacklogView.vue')
+    const { default: BacklogView } = await import('../../views/BacklogView.vue')
     const wrapper = mount(BacklogView)
 
     // wait for load
@@ -145,7 +145,7 @@ describe('Backlog - sprint creation', () => {
     const prompts = ['', '2025-10-11', '2025-10-18', 'New objective']
     const promptSpy = vi.spyOn(window, 'prompt').mockImplementation(() => prompts.shift())
 
-    const { default: BacklogView } = await import('../views/BacklogView.vue')
+    const { default: BacklogView } = await import('../../views/BacklogView.vue')
     const wrapper = mount(BacklogView)
 
     await Promise.resolve()
@@ -188,7 +188,7 @@ describe('Backlog - sprint creation', () => {
 
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
 
-    const { default: BacklogView } = await import('../views/BacklogView.vue')
+    const { default: BacklogView } = await import('../../views/BacklogView.vue')
     const wrapper = mount(BacklogView)
 
     // wait for load

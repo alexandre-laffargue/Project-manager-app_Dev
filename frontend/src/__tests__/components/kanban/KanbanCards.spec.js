@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mockAuthStore, mockApi, resetTestMocks } from './utils/testUtils'
+import { mockAuthStore, mockApi, resetTestMocks } from '../../utils/testUtils'
 
 describe('Kanban - Cards', () => {
   beforeEach(() => {
@@ -30,7 +30,7 @@ describe('Kanban - Cards', () => {
     mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     mockApi({ get: mockGet, post: mockPost, del: mockDel })
 
-    const { default: KanbanView } = await import('../views/KanbanView.vue')
+    const { default: KanbanView } = await import('../../../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
     await Promise.resolve()
@@ -94,7 +94,7 @@ describe('Kanban - Cards', () => {
     mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     mockApi({ get: mockGet, post: mockPost })
 
-    const { default: KanbanView } = await import('../views/KanbanView.vue')
+    const { default: KanbanView } = await import('../../../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
     await Promise.resolve()
@@ -146,7 +146,7 @@ describe('Kanban - Cards', () => {
     mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     mockApi({ get: mockGet, patch: mockPatch })
 
-    const { default: KanbanView } = await import('../views/KanbanView.vue')
+    const { default: KanbanView } = await import('../../../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
     await Promise.resolve()
@@ -216,7 +216,7 @@ describe('Kanban - Cards', () => {
     mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     mockApi({ get: mockGet, patch: mockPatch })
 
-    const { default: KanbanView } = await import('../views/KanbanView.vue')
+    const { default: KanbanView } = await import('../../../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
     // wait initial load

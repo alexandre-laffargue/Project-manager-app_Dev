@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mockAuthStore, mockRouter, resetTestMocks } from './utils/testUtils'
+import { mockAuthStore, mockRouter, resetTestMocks } from '../utils/testUtils'
 
 // create mock functions
 const mockLogin = vi.fn()
@@ -16,7 +16,7 @@ describe('LoginView', () => {
     mockAuthStore({ login: mockLogin })
     mockRouter({ push: mockPush })
 
-    const { default: LoginView } = await import('../views/LoginView.vue')
+    const { default: LoginView } = await import('../../views/LoginView.vue')
     const wrapper = mount(LoginView)
 
     // submit with empty fields -> should show validation messages and not call login
@@ -35,7 +35,7 @@ describe('LoginView', () => {
     mockAuthStore({ login: mockLogin })
     mockRouter({ push: mockPush })
 
-    const { default: LoginView } = await import('../views/LoginView.vue')
+    const { default: LoginView } = await import('../../views/LoginView.vue')
     const wrapper = mount(LoginView)
     const email = wrapper.find('#email')
     const pwd = wrapper.find('#password')
@@ -58,7 +58,7 @@ describe('LoginView', () => {
     mockAuthStore({ login: mockLogin })
     mockRouter({ push: mockPush })
 
-    const { default: LoginView } = await import('../views/LoginView.vue')
+    const { default: LoginView } = await import('../../views/LoginView.vue')
     const wrapper = mount(LoginView)
 
     const email = wrapper.find('#email')

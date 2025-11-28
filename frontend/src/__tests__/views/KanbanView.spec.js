@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mockAuthStore, mockApi, resetTestMocks } from './utils/testUtils'
+import { mockAuthStore, mockApi, resetTestMocks } from '../utils/testUtils'
 
 // We'll dynamically mock modules per-test and import the component after mocking.
 const mockLoad = vi.fn()
@@ -20,7 +20,7 @@ describe('KanbanView', () => {
     // mock api (no calls expected but safe)
     mockApi({ get: mockGet, post: mockPost, patch: mockPatch, del: mockDel })
 
-    const { default: KanbanView } = await import('../views/KanbanView.vue')
+    const { default: KanbanView } = await import('../../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
     expect(wrapper.text()).toContain('Vous devez être connecté(e) pour accéder au tableau Kanban.')
@@ -45,7 +45,7 @@ describe('KanbanView', () => {
     mockApi({ get: mockGet, post: mockPost, patch: mockPatch, del: mockDel })
 
     // import component after mocks
-    const { default: KanbanView } = await import('../views/KanbanView.vue')
+    const { default: KanbanView } = await import('../../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
     // wait for async onMounted flow (allow promise microtasks and timers to flush)

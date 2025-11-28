@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mockAuthStore, mockRouter, resetTestMocks } from './utils/testUtils'
+import { mockAuthStore, mockRouter, resetTestMocks } from '../utils/testUtils'
 
 const mockRegister = vi.fn()
 const mockPush = vi.fn()
@@ -14,7 +14,7 @@ describe('RegisterView', () => {
     mockAuthStore({ register: mockRegister })
     mockRouter({ push: mockPush })
 
-    const { default: RegisterView } = await import('../views/RegisterView.vue')
+    const { default: RegisterView } = await import('../../views/RegisterView.vue')
     const wrapper = mount(RegisterView)
 
     // submit with empty fields -> should show validation messages and not call register
@@ -33,7 +33,7 @@ describe('RegisterView', () => {
     mockAuthStore({ register: mockRegister })
     mockRouter({ push: mockPush })
 
-    const { default: RegisterView } = await import('../views/RegisterView.vue')
+    const { default: RegisterView } = await import('../../views/RegisterView.vue')
     const wrapper = mount(RegisterView)
     const email = wrapper.find('#email')
     const name = wrapper.find('#name')
@@ -59,7 +59,7 @@ describe('RegisterView', () => {
     mockAuthStore({ register: mockRegister })
     mockRouter({ push: mockPush })
 
-    const { default: RegisterView } = await import('../views/RegisterView.vue')
+    const { default: RegisterView } = await import('../../views/RegisterView.vue')
     const wrapper = mount(RegisterView)
 
     const email = wrapper.find('#email')
@@ -82,7 +82,7 @@ describe('RegisterView', () => {
     mockAuthStore({ register: mockRegister })
     mockRouter({ push: mockPush })
 
-    const { default: RegisterView } = await import('../views/RegisterView.vue')
+    const { default: RegisterView } = await import('../../views/RegisterView.vue')
     const wrapper = mount(RegisterView)
 
     const email = wrapper.find('#email')
@@ -105,7 +105,7 @@ describe('RegisterView', () => {
     mockAuthStore({ register: mockRegister })
     mockRouter({ push: mockPush })
 
-    const { default: RegisterView } = await import('../views/RegisterView.vue')
+    const { default: RegisterView } = await import('../../views/RegisterView.vue')
     const wrapper = mount(RegisterView)
 
     const email = wrapper.find('#email')

@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mockAuthStore, mockApi, resetTestMocks } from './utils/testUtils'
+import { mockAuthStore, mockApi, resetTestMocks } from '../../utils/testUtils'
 
 describe('Kanban - Columns', () => {
   beforeEach(() => {
@@ -27,7 +27,7 @@ describe('Kanban - Columns', () => {
     mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     mockApi({ get: mockGet, post: mockPost })
 
-    const { default: KanbanView } = await import('../views/KanbanView.vue')
+    const { default: KanbanView } = await import('../../../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
     // wait for initial load
@@ -72,7 +72,7 @@ describe('Kanban - Columns', () => {
     // stub confirm to accept deletion
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
 
-    const { default: KanbanView } = await import('../views/KanbanView.vue')
+    const { default: KanbanView } = await import('../../../views/KanbanView.vue')
     const wrapper = mount(KanbanView)
 
     await Promise.resolve()

@@ -6,8 +6,8 @@
       <p class="task-desc">{{ card.description }}</p>
 
       <div class="task-meta">
-        <span class="badge priority" :class="card.priority.toLowerCase()">{{ card.priority }}</span>
-        <span class="badge type">{{ card.type }}</span>
+        <span class="badge priority" :class="(card.priority || 'medium').toLowerCase()">{{ card.priority || 'Medium' }}</span>
+        <span class="badge type">{{ card.type || 'Task' }}</span>
       </div>
 
       <div class="task-actions">

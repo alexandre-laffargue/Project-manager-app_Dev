@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mockAuthStore, mockRouter, resetTestMocks } from './utils/testUtils'
+import { mockAuthStore, mockRouter, resetTestMocks } from '../utils/testUtils'
 
 describe('LeftNav logout', () => {
   beforeEach(() => {
@@ -14,7 +14,7 @@ describe('LeftNav logout', () => {
     mockAuthStore({ isAuthenticated: true, user: { name: 'Alice' }, logout: mockLogout })
     mockRouter({ push: mockPush, route: { path: '/kanban' } })
 
-    const { default: LeftNav } = await import('../components/LeftNav.vue')
+    const { default: LeftNav } = await import('../../components/LeftNav.vue')
     const wrapper = mount(LeftNav)
 
     // user name displayed
@@ -36,7 +36,7 @@ describe('LeftNav logout', () => {
     // start on Kanban
     mockRouter({ push: mockPush, route: { path: '/kanban' } })
 
-    const { default: LeftNav } = await import('../components/LeftNav.vue')
+    const { default: LeftNav } = await import('../../components/LeftNav.vue')
     const wrapper = mount(LeftNav)
 
     // find the Backlog item by text
@@ -56,7 +56,7 @@ describe('LeftNav logout', () => {
     const mockPush = vi.fn()
     mockRouter({ push: mockPush, route: { path: '/kanban' } })
 
-    const { default: LeftNav } = await import('../components/LeftNav.vue')
+    const { default: LeftNav } = await import('../../components/LeftNav.vue')
     const wrapper = mount(LeftNav)
 
     const items = wrapper.findAll('.nav-list .nav-item')
@@ -77,7 +77,7 @@ describe('LeftNav logout', () => {
     const mockPush = vi.fn()
     mockRouter({ push: mockPush, route: { path: '/chronologie' } })
 
-    const { default: LeftNav } = await import('../components/LeftNav.vue')
+    const { default: LeftNav } = await import('../../components/LeftNav.vue')
     const wrapper = mount(LeftNav)
 
     const items = wrapper.findAll('.nav-list .nav-item')
