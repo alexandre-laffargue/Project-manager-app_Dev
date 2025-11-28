@@ -14,4 +14,10 @@ RUN npm ci --omit=dev
 COPY . .
 ENV NODE_ENV=production
 EXPOSE 3000
+
+# Run as a non-root user in production for better security
+RUN addgroup --system app && adduser --system --ingroup app app || true
+RUN chown -R app:app /app
+USER app
+
 CMD ["npm","start"]
