@@ -6,9 +6,15 @@ function signJwt (payload, options = {}) {
   return jwt.sign(payload, secret, { expiresIn, ...options })
 }
 
+function signRefreshToken (payload) {
+  const secret = process.env.JWT_SECRET
+  const expiresIn = '7d' // Refresh token valide 7 jours
+  return jwt.sign(payload, secret, { expiresIn })
+}
+
 function verifyJwt (token) {
   const secret = process.env.JWT_SECRET
   return jwt.verify(token, secret)
 }
 
-module.exports = { signJwt, verifyJwt }
+module.exports = { signJwt, signRefreshToken, verifyJwt }

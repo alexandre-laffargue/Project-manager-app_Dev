@@ -5,6 +5,7 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,
     token: null,
+    refreshToken: null,
   }),
   getters: {
     isAuthenticated: (state) => !!state.token,
@@ -12,10 +13,15 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     loadFromStorage() {
       const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
+      const refreshToken = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token')
       const user = localStorage.getItem('auth_user') || sessionStorage.getItem('auth_user')
       if (token) {
         this.token = token
         api.setAuthToken(token)
+      }
+      if (refreshToken) {
+        this.refreshToken = refreshToken
+        api.setRefreshToken(refreshToken)
       }
       if (user) this.user = JSON.parse(user)
     },
@@ -31,13 +37,16 @@ export const useAuthStore = defineStore('auth', {
       // Call backend
       const payload = await api.post('/api/auth/login', { email, password })
 
-      const { token, user } = payload
+      const { token, refreshToken, user } = payload
       this.token = token
+      this.refreshToken = refreshToken
       this.user = user
       api.setAuthToken(token)
+      api.setRefreshToken(refreshToken)
 
       const storage = remember ? localStorage : sessionStorage
       storage.setItem('auth_token', token)
+      storage.setItem('refresh_token', refreshToken)
       storage.setItem('auth_user', JSON.stringify(user))
 
       return { token, user }
@@ -57,13 +66,16 @@ export const useAuthStore = defineStore('auth', {
       const payload = await api.post('/api/auth/register', { email, password, name })
 
       // backend returns token + user on register
-      const { token, user } = payload
+      const { token, refreshToken, user } = payload
       this.token = token
+      this.refreshToken = refreshToken
       this.user = user
       api.setAuthToken(token)
+      api.setRefreshToken(refreshToken)
 
       const storage = remember ? localStorage : sessionStorage
       storage.setItem('auth_token', token)
+      storage.setItem('refresh_token', refreshToken)
       storage.setItem('auth_user', JSON.stringify(user))
 
       return { token, user }
@@ -71,11 +83,15 @@ export const useAuthStore = defineStore('auth', {
 
     logout() {
       this.token = null
+      this.refreshToken = null
       this.user = null
       api.setAuthToken(null)
+      api.setRefreshToken(null)
       localStorage.removeItem('auth_token')
+      localStorage.removeItem('refresh_token')
       localStorage.removeItem('auth_user')
       sessionStorage.removeItem('auth_token')
+      sessionStorage.removeItem('refresh_token')
       sessionStorage.removeItem('auth_user')
     },
   },
