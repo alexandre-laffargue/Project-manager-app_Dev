@@ -1,32 +1,34 @@
 <template>
-  <div v-if="isOpen" class="modal-overlay" @click.self="close">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>{{ isEditMode ? 'Modifier la colonne' : 'Nouvelle colonne' }}</h2>
-        <button class="close-btn" @click="close">×</button>
+  <Teleport to="body">
+    <div v-if="isOpen" class="modal-overlay" @click.self="close">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>{{ isEditMode ? 'Modifier la colonne' : 'Nouvelle colonne' }}</h2>
+          <button class="close-btn" @click="close">×</button>
+        </div>
+
+        <form @submit.prevent="handleSubmit" class="modal-form">
+          <div class="form-group">
+            <label for="column-title">Nom de la colonne *</label>
+            <input
+              id="column-title"
+              v-model="formData.title"
+              type="text"
+              placeholder="Nom de la colonne"
+              required
+            />
+          </div>
+
+          <div class="modal-actions">
+            <button type="submit" class="btn-primary">
+              {{ isEditMode ? 'Enregistrer' : 'Créer' }}
+            </button>
+            <button type="button" class="btn-secondary" @click="close">Annuler</button>
+          </div>
+        </form>
       </div>
-
-      <form @submit.prevent="handleSubmit" class="modal-form">
-        <div class="form-group">
-          <label for="column-title">Nom de la colonne *</label>
-          <input
-            id="column-title"
-            v-model="formData.title"
-            type="text"
-            placeholder="Nom de la colonne"
-            required
-          />
-        </div>
-
-        <div class="modal-actions">
-          <button type="submit" class="btn-primary">
-            {{ isEditMode ? 'Enregistrer' : 'Créer' }}
-          </button>
-          <button type="button" class="btn-secondary" @click="close">Annuler</button>
-        </div>
-      </form>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>

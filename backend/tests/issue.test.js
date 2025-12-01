@@ -281,14 +281,12 @@ describe("Issue API", () => {
       const moved = { ...issue, sprintId: "sprint-1", position: 0 };
       mockReorderIssues.mockResolvedValue(moved);
 
-      const res = await request(app)
-        .patch("/api/issues/moveToSprint")
-        .send({
-          issueId: "issue-1",
-          sprintId: "sprint-1",
-          boardId: "board-1",
-          toPosition: 0,
-        });
+      const res = await request(app).patch("/api/issues/moveToSprint").send({
+        issueId: "issue-1",
+        sprintId: "sprint-1",
+        boardId: "board-1",
+        toPosition: 0,
+      });
 
       expect(res.status).toBe(200);
       expect(mockReorderIssues).toHaveBeenCalled();

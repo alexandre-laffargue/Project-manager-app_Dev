@@ -1,6 +1,6 @@
 <template>
   <div class="sprints-section">
-    <h2>📋 Sprints</h2>
+    <h2>Sprints</h2>
 
     <div v-if="sprints.length" class="sprints-grid">
       <SprintCard
@@ -14,7 +14,7 @@
     </div>
 
     <div v-else class="empty-state">
-      <p>📭 Aucun sprint créé pour le moment.</p>
+      <p>Aucun sprint créé pour le moment.</p>
     </div>
   </div>
 </template>

@@ -1,6 +1,6 @@
 <template>
   <div class="issues-section">
-    <h2>📋 Issues du backlog</h2>
+    <h2>Issues</h2>
 
     <div v-if="issues.length" class="issues-list">
       <IssueCard
@@ -13,7 +13,7 @@
     </div>
 
     <div v-else class="empty-state">
-      <p>📝 Aucune issue dans le backlog.</p>
+      <p>Aucune issue.</p>
     </div>
   </div>
 </template>

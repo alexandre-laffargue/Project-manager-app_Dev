@@ -1,62 +1,64 @@
 <template>
-  <div v-if="isOpen" class="modal-overlay" @click.self="close">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>{{ isEditMode ? 'Modifier la carte' : 'Nouvelle carte' }}</h2>
-        <button class="close-btn" @click="close">×</button>
+  <Teleport to="body">
+    <div v-if="isOpen" class="modal-overlay" @click.self="close">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>{{ isEditMode ? 'Modifier la carte' : 'Nouvelle carte' }}</h2>
+          <button class="close-btn" @click="close">×</button>
+        </div>
+
+        <form @submit.prevent="handleSubmit" class="modal-form">
+          <div class="form-group">
+            <label for="task-title">Titre *</label>
+            <input
+              id="task-title"
+              v-model="formData.title"
+              type="text"
+              placeholder="Titre de la carte"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="task-description">Description</label>
+            <textarea
+              id="task-description"
+              v-model="formData.description"
+              rows="4"
+              placeholder="Description de la carte"
+            ></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="task-priority">Priorité</label>
+              <select id="task-priority" v-model="formData.priority">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="task-type">Type</label>
+              <select id="task-type" v-model="formData.type">
+                <option value="Bug">Bug</option>
+                <option value="Feature">Feature</option>
+                <option value="Task">Task</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button type="submit" class="btn-primary">
+              {{ isEditMode ? 'Enregistrer' : 'Créer' }}
+            </button>
+            <button type="button" class="btn-secondary" @click="close">Annuler</button>
+          </div>
+        </form>
       </div>
-
-      <form @submit.prevent="handleSubmit" class="modal-form">
-        <div class="form-group">
-          <label for="task-title">Titre *</label>
-          <input
-            id="task-title"
-            v-model="formData.title"
-            type="text"
-            placeholder="Titre de la carte"
-            required
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="task-description">Description</label>
-          <textarea
-            id="task-description"
-            v-model="formData.description"
-            rows="4"
-            placeholder="Description de la carte"
-          ></textarea>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="task-priority">Priorité</label>
-            <select id="task-priority" v-model="formData.priority">
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="task-type">Type</label>
-            <select id="task-type" v-model="formData.type">
-              <option value="Bug">Bug</option>
-              <option value="Feature">Feature</option>
-              <option value="Task">Task</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button type="submit" class="btn-primary">
-            {{ isEditMode ? 'Enregistrer' : 'Créer' }}
-          </button>
-          <button type="button" class="btn-secondary" @click="close">Annuler</button>
-        </div>
-      </form>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>

@@ -2,3 +2,432 @@
   margin-left: 220px;
   padding: 24px;
 }
+
+/* IssueCard styles */
+.issue {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
+
+.issue:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  border-color: #7b5fc0;
+}
+
+.issue h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.issue p {
+  margin: 0 0 12px 0;
+  color: #666;
+}
+
+.issue-meta {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.checklist-preview {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #f9f9f9;
+  border-radius: 6px;
+}
+
+.checklist-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.checklist-icon {
+  font-weight: bold;
+  color: #7b5fc0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #7b5fc0;
+  transition: width 0.3s ease;
+}
+
+.issue-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.issue-actions button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.issue-actions button:first-child {
+  background-color: #7b5fc0;
+  color: white;
+}
+
+.issue-actions button:first-child:hover {
+  background-color: #a07ff0;
+}
+
+.issue-actions button:last-child {
+  background-color: #f44336;
+  color: white;
+}
+
+.issue-actions button:last-child:hover {
+  background-color: #e53935;
+}
+
+/* SprintCard styles */
+.sprint-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.sprint-card:hover {
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.sprint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.sprint-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.sprint-dates {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.date-icon {
+  font-size: 1rem;
+}
+
+.sprint-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.issue-count {
+  white-space: nowrap;
+}
+
+.sprint-objective {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.sprint-objective strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.sprint-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sprint-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-view-issues {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-view-issues:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.btn-view-issues span {
+  font-size: 0.8rem;
+}
+
+.btn-edit {
+  background: white;
+  color: #667eea;
+}
+
+.btn-edit:hover {
+  background: #f0f0f0;
+  transform: translateY(-1px);
+}
+
+.btn-delete {
+  background: #ff5252;
+  color: white;
+}
+
+.btn-delete:hover {
+  background: #ff1744;
+  transform: translateY(-1px);
+}
+
+.sprint-issues {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+.issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.issue-item {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 12px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.issue-item:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.issue-title {
+  font-weight: 500;
+  flex: 1;
+}
+
+.issue-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.no-issues {
+  text-align: center;
+  padding: 20px;
+  opacity: 0.7;
+  font-style: italic;
+  color: #999;
+}
+
+.no-issues p {
+  margin: 0;
+}
+
+/* IssueModal & SprintModal styles */
+.modal-large {
+  min-width: 600px;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.checklist-section,
+.issues-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.checklist-section h3,
+.issues-section h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.help-text {
+  margin: 0 0 16px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.checklist-item input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checklist-text {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.btn-remove {
+  padding: 4px 8px;
+  background: #ff5252;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+.btn-remove:hover {
+  background: #ff1744;
+}
+
+.btn-add-checklist {
+  padding: 8px 16px;
+  background: #7b5fc0;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-add-checklist:hover {
+  background: #a07ff0;
+  transform: translateY(-1px);
+}
+
+.modal-issues-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px;
+  background: #f9f9f9;
+  border-radius: 6px;
+}
+
+.issue-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.issue-checkbox:hover {
+  border-color: #7b5fc0;
+  box-shadow: 0 2px 4px rgba(123, 95, 192, 0.1);
+}
+
+.issue-checkbox input[type='checkbox'] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.issue-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.issue-info strong {
+  color: #333;
+}
+
+.issue-meta {
+  display: flex;
+  gap: 6px;
+}
