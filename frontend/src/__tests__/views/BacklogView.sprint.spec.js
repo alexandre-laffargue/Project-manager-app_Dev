@@ -17,16 +17,24 @@ describe('Backlog - sprint creation', () => {
       name: 'Sprint 1',
       startDate: '2025-11-20',
       endDate: '2025-11-27',
-      objective: 'Objectif test'
+      objective: 'Objectif test',
+      issues: []
     }
 
+    let sprintsAfterCreate = []
+
     const mockGet = vi.fn((url) => {
-      if (url === '/api/sprints') return Promise.resolve(existingSprints)
+      if (url === '/api/sprints') return Promise.resolve([...sprintsAfterCreate])
+      if (url === '/api/issues') return Promise.resolve([])
+      if (url === '/api/boards/me') return Promise.resolve([{ _id: 'board1' }])
       return Promise.resolve([])
     })
 
-    const mockPost = vi.fn((url) => {
-      if (url === '/api/sprints') return Promise.resolve(created)
+    const mockPost = vi.fn((url, data) => {
+      if (url === '/api/sprints') {
+        sprintsAfterCreate.push(created)
+        return Promise.resolve(created)
+      }
       return Promise.resolve({})
     })
 
@@ -34,57 +42,94 @@ describe('Backlog - sprint creation', () => {
     mockApi({ get: mockGet, post: mockPost })
 
     const { default: BacklogView } = await import('../../views/BacklogView.vue')
-    const wrapper = mount(BacklogView)
+    const wrapper = mount(BacklogView, { attachTo: document.body })
 
     // wait for onMounted loadBacklog
     await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
+    await new Promise((r) => setTimeout(r, 50))
 
-    // fill inputs: name, startDate, endDate, objective
-    const inputs = wrapper.findAll('.backlog-controls input')
-    expect(inputs.length).toBeGreaterThanOrEqual(3)
-    await inputs[0].setValue('Sprint 1')
-    await inputs[1].setValue('2025-11-20')
-    await inputs[2].setValue('2025-11-27')
-
-    const textarea = wrapper.find('.backlog-controls textarea')
-    await textarea.setValue('Objectif test')
-
-    // click create
-    const createBtn = wrapper.find('.backlog-controls button')
+    // Click "Nouveau Sprint" button to open modal
+    const createBtn = wrapper.find('.btn-create')
     await createBtn.trigger('click')
+    await wrapper.vm.$nextTick()
 
-    // allow async createSprint to resolve
+    // Find modal and fill form
+    const modal = document.querySelector('.modal-overlay')
+    expect(modal).toBeTruthy()
+
+    const nameInput = modal.querySelector('input[placeholder="Nom du sprint"]')
+    const dateInputs = modal.querySelectorAll('input[type="date"]')
+    const textarea = modal.querySelector('textarea')
+
+    nameInput.value = 'Sprint 1'
+    nameInput.dispatchEvent(new Event('input'))
+    dateInputs[0].value = '2025-11-20'
+    dateInputs[0].dispatchEvent(new Event('input'))
+    dateInputs[1].value = '2025-11-27'
+    dateInputs[1].dispatchEvent(new Event('input'))
+    textarea.value = 'Objectif test'
+    textarea.dispatchEvent(new Event('input'))
+
+    await wrapper.vm.$nextTick()
+
+    // click save button in modal
+    const saveBtn = modal.querySelector('.btn-primary')
+    saveBtn.click()
+    await wrapper.vm.$nextTick()
+
+    // allow async createSprint to resolve and reload
     await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
+    await new Promise((r) => setTimeout(r, 100))
 
-    expect(mockPost).toHaveBeenCalledWith('/api/sprints', expect.objectContaining({ name: 'Sprint 1', startDate: '2025-11-20', endDate: '2025-11-27', objective: 'Objectif test' }))
+    expect(mockPost).toHaveBeenCalledWith('/api/sprints', expect.objectContaining({ 
+      name: 'Sprint 1', 
+      startDate: '2025-11-20', 
+      endDate: '2025-11-27', 
+      objective: 'Objectif test',
+      issues: expect.any(Array)
+    }))
 
-    // new sprint should appear in the DOM
+    // new sprint should appear in the DOM after reload
     expect(wrapper.text()).toContain('Sprint 1')
+    
+    wrapper.unmount()
   })
 
   it('edits a sprint using prompts and updates the DOM', async () => {
     const mockLoad = vi.fn()
 
-  // no cards needed for sprint tests
+    // no cards needed for sprint tests
     const sprint = {
       _id: 'sprint1',
       name: 'Sprint 1',
       startDate: '2025-11-20',
       endDate: '2025-11-27',
-      objective: 'Old objective'
+      objective: 'Old objective',
+      issues: []
     }
 
-    const updated = { ...sprint, name: 'Sprint 1 - Updated', startDate: '2025-11-21', endDate: '2025-11-28', objective: 'Updated objective' }
+    const sprintsData = [sprint]
 
     const mockGet = vi.fn((url) => {
-      if (url === '/api/sprints') return Promise.resolve([sprint])
+      if (url === '/api/sprints') return Promise.resolve([...sprintsData])
+      if (url === '/api/issues') return Promise.resolve([])
+      if (url === '/api/boards/me') return Promise.resolve([{ _id: 'board1' }])
       return Promise.resolve([])
     })
 
-    const mockPatch = vi.fn((url) => {
-      if (url === `/api/sprints/${sprint._id}`) return Promise.resolve(updated)
+    const mockPatch = vi.fn((url, data) => {
+      if (url === `/api/sprints/${sprint._id}`) {
+        const updated = { 
+          ...sprint, 
+          name: data.name,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          objective: data.objective,
+          issues: data.issues || []
+        }
+        sprintsData[0] = updated
+        return Promise.resolve(updated)
+      }
       return Promise.resolve({})
     })
 
@@ -96,31 +141,49 @@ describe('Backlog - sprint creation', () => {
 
     // wait for load
     await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
+    await new Promise((r) => setTimeout(r, 100))
 
     // click Modifier on the sprint (opens modal)
-    const actionBtns = wrapper.findAll('.sprint .sprint-actions button')
-    expect(actionBtns.length).toBeGreaterThanOrEqual(1)
-    await actionBtns[0].trigger('click')
+    const actionBtns = wrapper.findAll('.sprint-card .sprint-actions button')
+    expect(actionBtns.length).toBeGreaterThanOrEqual(2)
+    await actionBtns[1].trigger('click') // Index 1 = Modifier button
     await wrapper.vm.$nextTick()
 
     // Fill modal form
-    const modal = wrapper.find('.modal-overlay')
-    expect(modal.exists()).toBe(true)
+    const modal = document.querySelector('.modal-overlay')
+    expect(modal).toBeTruthy()
     
-    await modal.find('input[placeholder="Nom du sprint"]').setValue('Sprint 1 - Updated')
-    await modal.findAll('input[type="date"]')[0].setValue('2025-11-21')
-    await modal.findAll('input[type="date"]')[1].setValue('2025-11-28')
-    await modal.find('textarea').setValue('Updated objective')
+    const nameInput = modal.querySelector('input[placeholder="Nom du sprint"]')
+    const dateInputs = modal.querySelectorAll('input[type="date"]')
+    const textarea = modal.querySelector('textarea')
+
+    nameInput.value = 'Sprint 1 - Updated'
+    nameInput.dispatchEvent(new Event('input'))
+    dateInputs[0].value = '2025-11-21'
+    dateInputs[0].dispatchEvent(new Event('input'))
+    dateInputs[1].value = '2025-11-28'
+    dateInputs[1].dispatchEvent(new Event('input'))
+    textarea.value = 'Updated objective'
+    textarea.dispatchEvent(new Event('input'))
+
+    await wrapper.vm.$nextTick()
     
     // Click save button
-    await modal.find('.btn-primary').trigger('click')
+    const saveBtn = modal.querySelector('.btn-primary')
+    saveBtn.click()
+    await wrapper.vm.$nextTick()
     await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
+    await new Promise((r) => setTimeout(r, 100))
 
-    expect(mockPatch).toHaveBeenCalledWith(`/api/sprints/${sprint._id}`, expect.objectContaining({ name: 'Sprint 1 - Updated', startDate: '2025-11-21', endDate: '2025-11-28', objective: 'Updated objective' }))
+    expect(mockPatch).toHaveBeenCalledWith(`/api/sprints/${sprint._id}`, expect.objectContaining({ 
+      name: 'Sprint 1 - Updated', 
+      startDate: '2025-11-21', 
+      endDate: '2025-11-28', 
+      objective: 'Updated objective',
+      issues: expect.any(Array)
+    }))
 
-    // DOM updated
+    // DOM updated after reload
     expect(wrapper.text()).toContain('Sprint 1 - Updated')
     expect(wrapper.text()).toContain('Updated objective')
     
@@ -135,41 +198,65 @@ describe('Backlog - sprint creation', () => {
       name: 'Sprint Keep',
       startDate: '2025-10-10',
       endDate: '2025-10-17',
-      objective: 'Keep objective'
+      objective: 'Keep objective',
+      issues: []
     }
 
     const mockGet = vi.fn((url) => {
       if (url === '/api/sprints') return Promise.resolve([sprint])
+      if (url === '/api/issues') return Promise.resolve([])
+      if (url === '/api/boards/me') return Promise.resolve([{ _id: 'board1' }])
       return Promise.resolve([])
     })
 
     const mockPatch = vi.fn(() => Promise.resolve({}))
 
+    // Mock alert to check if validation message appears
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
     mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     mockApi({ get: mockGet, patch: mockPatch })
 
-    // first prompt returns empty name -> should abort without calling patch
-    const prompts = ['', '2025-10-11', '2025-10-18', 'New objective']
-    const promptSpy = vi.spyOn(window, 'prompt').mockImplementation(() => prompts.shift())
-
     const { default: BacklogView } = await import('../../views/BacklogView.vue')
-    const wrapper = mount(BacklogView)
+    const wrapper = mount(BacklogView, { attachTo: document.body })
 
     await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
+    await new Promise((r) => setTimeout(r, 100))
 
-    const actionBtns = wrapper.findAll('.sprint .sprint-actions button')
-    expect(actionBtns.length).toBeGreaterThanOrEqual(1)
-    await actionBtns[0].trigger('click') // Modifier
+    const actionBtns = wrapper.findAll('.sprint-card .sprint-actions button')
+    expect(actionBtns.length).toBeGreaterThanOrEqual(2)
+    await actionBtns[1].trigger('click') // Index 1 = Modifier button
 
+    await wrapper.vm.$nextTick()
+
+    // Fill modal with empty name
+    const modal = document.querySelector('.modal-overlay')
+    expect(modal).toBeTruthy()
+
+    const nameInput = modal.querySelector('input[placeholder="Nom du sprint"]')
+    nameInput.value = ''
+    nameInput.dispatchEvent(new Event('input'))
+
+    await wrapper.vm.$nextTick()
+
+    // Try to save with empty name
+    const saveBtn = modal.querySelector('.btn-primary')
+    saveBtn.click()
+    await wrapper.vm.$nextTick()
     await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
+    await new Promise((r) => setTimeout(r, 50))
 
-    // patch should not have been called and DOM unchanged
+    // Should show alert
+    expect(alertSpy).toHaveBeenCalledWith('Le nom du sprint est obligatoire.')
+
+    // Should NOT call patch
     expect(mockPatch).not.toHaveBeenCalled()
+
+    // Sprint name should remain unchanged in DOM
     expect(wrapper.text()).toContain('Sprint Keep')
 
-    promptSpy.mockRestore()
+    alertSpy.mockRestore()
+    wrapper.unmount()
   })
 
   it('deletes a sprint when confirmation accepted', async () => {
@@ -180,11 +267,14 @@ describe('Backlog - sprint creation', () => {
       name: 'Sprint To Delete',
       startDate: '2025-11-01',
       endDate: '2025-11-07',
-      objective: 'To be removed'
+      objective: 'To be removed',
+      issues: []
     }
 
     const mockGet = vi.fn((url) => {
       if (url === '/api/sprints') return Promise.resolve([sprint])
+      if (url === '/api/issues') return Promise.resolve([])
+      if (url === '/api/boards/me') return Promise.resolve([{ _id: 'board1' }])
       return Promise.resolve([])
     })
 
@@ -196,23 +286,24 @@ describe('Backlog - sprint creation', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
 
     const { default: BacklogView } = await import('../../views/BacklogView.vue')
-    const wrapper = mount(BacklogView)
+    const wrapper = mount(BacklogView, { attachTo: document.body })
 
     // wait for load
     await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
+    await new Promise ((r) => setTimeout(r, 100))
 
-    // click Supprimer (second button)
-    const actionBtns = wrapper.findAll('.sprint .sprint-actions button')
-    expect(actionBtns.length).toBeGreaterThanOrEqual(2)
-    await actionBtns[1].trigger('click')
+    // click Supprimer (third button)
+    const actionBtns = wrapper.findAll('.sprint-card .sprint-actions button')
+    expect(actionBtns.length).toBeGreaterThanOrEqual(3)
+    await actionBtns[2].trigger('click') // Index 2 = Supprimer button
 
     await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
+    await new Promise((r) => setTimeout(r, 50))
 
     expect(mockDel).toHaveBeenCalledWith(`/api/sprints/${sprint._id}`)
     expect(wrapper.text()).not.toContain('Sprint To Delete')
 
     confirmSpy.mockRestore()
+    wrapper.unmount()
   })
 })

@@ -1,197 +1,163 @@
 <template>
   <div class="backlog-page">
-    <h1>Backlog</h1>
+    <div class="backlog-header">
+      <h1>Backlog</h1>
+      <div v-if="isAuthenticated" class="action-buttons">
+        <button @click="showCreateSprintModal = true" class="btn-create">
+          <span>+</span> Nouveau Sprint
+        </button>
+        <button @click="showCreateIssueModal = true" class="btn-create">
+          <span>+</span> Nouvelle Issue
+        </button>
+      </div>
+    </div>
 
     <div v-if="!isAuthenticated">
       <p>Vous devez être connecté(e) pour accéder au backlog.</p>
     </div>
 
     <div v-else>
-      <div class="backlog-controls">
-        <h2>Créer un sprint</h2>
-        <input v-model="newSprint.name" placeholder="Nom du sprint" />
-        <input type="date" v-model="newSprint.startDate" placeholder="Date de début" />
-        <input type="date" v-model="newSprint.endDate" placeholder="Date de fin" />
-        <textarea v-model="newSprint.objective" placeholder="Objectif du sprint"></textarea>
-        <button @click="createSprint">Créer sprint</button>
-      </div>
+      <SprintList 
+        :sprints="sprints"
+        :all-issues="issues"
+        @edit-sprint="openEditSprintModal"
+        @delete-sprint="deleteSprint"
+      />
 
-      <!-- Liste des sprints -->
-      <div v-if="sprints.length" class="sprints-list">
-        <div class="sprint" v-for="sprint in sprints" :key="sprint._id">
-          <h3>{{ sprint.name }}</h3>
-          <p>
-            <strong>Dates :</strong> {{ formatDate(sprint.startDate) }} →
-            {{ formatDate(sprint.endDate) }}
-          </p>
-          <p><strong>Objectif :</strong> {{ sprint.objective }}</p>
-          <div class="sprint-actions">
-            <button @click="openEditModal(sprint)">Modifier</button>
-            <button @click="deleteSprint(sprint)">Supprimer</button>
-          </div>
-        </div>
-      </div>
-
-      <div v-else>
-        <p>Aucun sprint créé pour le moment.</p>
-      </div>
+      <IssueList 
+        :issues="issues"
+        @edit-issue="openEditIssueModal"
+        @delete-issue="deleteIssue"
+      />
     </div>
 
-    <!-- Modal d'édition -->
-    <div v-if="editingSprintId" class="modal-overlay" @click.self="closeEditModal">
-      <div class="modal-content">
-        <h2>Modifier le sprint</h2>
-        <div class="modal-form">
-          <label>
-            Nom du sprint :
-            <input v-model="editForm.name" placeholder="Nom du sprint" />
-          </label>
-          <label>
-            Date de début :
-            <input type="date" v-model="editForm.startDate" />
-          </label>
-          <label>
-            Date de fin :
-            <input type="date" v-model="editForm.endDate" />
-          </label>
-          <label>
-            Objectif :
-            <textarea v-model="editForm.objective" placeholder="Objectif du sprint" rows="4"></textarea>
-          </label>
-        </div>
-        <div class="modal-actions">
-          <button @click="saveEditSprint" class="btn-primary">Enregistrer</button>
-          <button @click="closeEditModal" class="btn-secondary">Annuler</button>
-        </div>
-      </div>
-    </div>
+    <!-- Modal de création de sprint -->
+    <SprintModal
+      :show="showCreateSprintModal"
+      :available-issues="issues"
+      title="Créer un sprint"
+      saveButtonText="Créer"
+      @close="showCreateSprintModal = false"
+      @save="createSprint"
+    />
+
+    <!-- Modal d'édition de sprint -->
+    <SprintModal
+      :show="showEditSprintModal"
+      :sprint="editingSprint"
+      :available-issues="issues"
+      title="Modifier le sprint"
+      saveButtonText="Enregistrer"
+      @close="closeEditSprintModal"
+      @save="saveEditSprint"
+    />
+
+    <!-- Modal de création d'issue -->
+    <IssueModal
+      :show="showCreateIssueModal"
+      :available-sprints="sprints"
+      title="Créer une issue"
+      saveButtonText="Créer"
+      @close="showCreateIssueModal = false"
+      @save="createIssue"
+    />
+
+    <!-- Modal d'édition d'issue -->
+    <IssueModal
+      :show="showEditIssueModal"
+      :issue="editingIssue"
+      :available-sprints="sprints"
+      title="Modifier l'issue"
+      saveButtonText="Enregistrer"
+      @close="closeEditIssueModal"
+      @save="saveEditIssue"
+    />
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import '@/assets/backlog.css'
 import '@/assets/modal.css'
-import { get, post, patch, del } from '@/services/api'
-import { useAuthStore } from '@/stores/auth'
+import SprintList from '@/components/backlog/SprintList.vue'
+import IssueList from '@/components/backlog/IssueList.vue'
+import SprintModal from '@/components/backlog/SprintModal.vue'
+import IssueModal from '@/components/backlog/IssueModal.vue'
+import { useBacklog } from '@/composables/backlog/useBacklog'
 
-const auth = useAuthStore()
-const isAuthenticated = ref(false)
-
-const sprints = reactive([])
-const newSprint = reactive({
-  name: '',
-  startDate: '',
-  endDate: '',
-  objective: '',
-})
-
-const editingSprintId = ref(null)
-const editForm = reactive({
-  name: '',
-  startDate: '',
-  endDate: '',
-  objective: '',
-})
-
-async function loadBacklog() {
-  auth.loadFromStorage()
-  isAuthenticated.value = !!auth.token
-  if (!isAuthenticated.value) return
-
-  const data = await get('/api/sprints')
-  if (!data) return
-  data.forEach((s) => sprints.push({ ...s, issues: s.issues || [] }))
-}
-
-async function createSprint() {
-  if (!newSprint.name.trim()) return alert('Le nom du sprint est obligatoire.')
-
-  try {
-    const payload = { ...newSprint }
-    const created = await post('/api/sprints', payload)
-
-    const sprintToAdd = {
-      _id: created._id || created.id || Date.now().toString(),
-      name: created.name || payload.name,
-      startDate: created.startDate || payload.startDate,
-      endDate: created.endDate || payload.endDate,
-      objective: created.objective || payload.objective,
-      issues: created.issues || [],
-    }
-
-    sprints.push(sprintToAdd)
-    newSprint.name = ''
-    newSprint.startDate = ''
-    newSprint.endDate = ''
-    newSprint.objective = ''
-  } catch (err) {
-    console.error('Erreur lors de la création du sprint :', err)
-  }
-}
-
-function openEditModal(sprint) {
-  editingSprintId.value = sprint._id
-  editForm.name = sprint.name
-  editForm.startDate = sprint.startDate ? sprint.startDate.split('T')[0] : ''
-  editForm.endDate = sprint.endDate ? sprint.endDate.split('T')[0] : ''
-  editForm.objective = sprint.objective || ''
-}
-
-function closeEditModal() {
-  editingSprintId.value = null
-  editForm.name = ''
-  editForm.startDate = ''
-  editForm.endDate = ''
-  editForm.objective = ''
-}
-
-async function saveEditSprint() {
-  if (!editForm.name.trim()) {
-    alert('Le nom du sprint est obligatoire.')
-    return
-  }
-
-  try {
-    const updated = await patch(`/api/sprints/${editingSprintId.value}`, {
-      name: editForm.name,
-      startDate: editForm.startDate,
-      endDate: editForm.endDate,
-      objective: editForm.objective,
-    })
-
-    const sprint = sprints.find((s) => s._id === editingSprintId.value)
-    if (sprint) {
-      sprint.name = updated.name
-      sprint.startDate = updated.startDate
-      sprint.endDate = updated.endDate
-      sprint.objective = updated.objective
-    }
-
-    closeEditModal()
-  } catch (err) {
-    console.error('Erreur lors de la modification du sprint :', err)
-    alert('Erreur lors de la modification du sprint.')
-  }
-}
-
-async function deleteSprint(sprint) {
-  if (!confirm(`Supprimer le sprint "${sprint.name}" ?`)) return
-  await del(`/api/sprints/${sprint._id}`)
-  const index = sprints.findIndex((s) => s._id === sprint._id)
-  if (index !== -1) sprints.splice(index, 1)
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const year = d.getFullYear()
-  return `${day}/${month}/${year}`
-}
+const {
+  isAuthenticated,
+  sprints,
+  issues,
+  showCreateSprintModal,
+  showCreateIssueModal,
+  showEditSprintModal,
+  showEditIssueModal,
+  editingSprint,
+  editingIssue,
+  loadBacklog,
+  createSprint,
+  openEditSprintModal,
+  closeEditSprintModal,
+  saveEditSprint,
+  deleteSprint,
+  createIssue,
+  openEditIssueModal,
+  closeEditIssueModal,
+  saveEditIssue,
+  deleteIssue,
+} = useBacklog()
 
 onMounted(() => {
   loadBacklog().catch((err) => console.error(err))
 })
 </script>
+
+<style scoped>
+.backlog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.backlog-header h1 {
+  margin: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-create {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background-color: #7b5fc0;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-create span {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.btn-create:hover {
+  background-color: #a07ff0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(123, 95, 192, 0.3);
+}
+
+.btn-create:active {
+  background-color: #5a3e99;
+  transform: translateY(0);
+}
+</style>
