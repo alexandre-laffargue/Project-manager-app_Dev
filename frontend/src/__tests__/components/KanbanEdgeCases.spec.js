@@ -185,12 +185,30 @@ describe('KanbanColumn - Edge Cases', () => {
       global: {
         stubs: { KanbanCard: true },
       },
+      attachTo: document.body,
     })
 
-    const addBtn = wrapper.find('.add-card button')
+    // Click button to open modal
+    const addBtn = wrapper.find('.add-card-btn')
     await addBtn.trigger('click')
+    await wrapper.vm.$nextTick()
 
+    // Find modal and try to submit with empty title
+    const modal = document.querySelector('.modal-overlay')
+    expect(modal).toBeTruthy()
+
+    const titleInput = modal.querySelector('#task-title')
+    titleInput.value = '' // Empty title
+    titleInput.dispatchEvent(new Event('input'))
+
+    const createBtn = modal.querySelector('.modal-actions .btn-primary')
+    createBtn.click()
+    await wrapper.vm.$nextTick()
+
+    // Should not emit create-card event because title is empty
     expect(wrapper.emitted('create-card')).toBeFalsy()
+
+    wrapper.unmount()
   })
 
   it('resets form after creating card', async () => {
@@ -199,18 +217,48 @@ describe('KanbanColumn - Edge Cases', () => {
       global: {
         stubs: { KanbanCard: true },
       },
+      attachTo: document.body,
     })
 
-    const inputs = wrapper.findAll('.add-card input')
-    await inputs[0].setValue('New Task')
-    await inputs[1].setValue('Description')
-
-    const addBtn = wrapper.find('.add-card button')
+    // Open modal
+    const addBtn = wrapper.find('.add-card-btn')
     await addBtn.trigger('click')
+    await wrapper.vm.$nextTick()
 
-    // Form should be reset
-    expect(inputs[0].element.value).toBe('')
-    expect(inputs[1].element.value).toBe('')
+    const modal = document.querySelector('.modal-overlay')
+
+    // Fill form
+    const titleInput = modal.querySelector('#task-title')
+    const descInput = modal.querySelector('#task-description')
+    titleInput.value = 'New Task'
+    titleInput.dispatchEvent(new Event('input'))
+    descInput.value = 'Description'
+    descInput.dispatchEvent(new Event('input'))
+
+    // Submit
+    const createBtn = modal.querySelector('.modal-actions .btn-primary')
+    createBtn.click()
+    await wrapper.vm.$nextTick()
+
+    // Should emit create-card
+    expect(wrapper.emitted('create-card')).toBeTruthy()
+
+    // Modal should be closed and form reset
+    await wrapper.vm.$nextTick()
+    expect(document.querySelector('.modal-overlay')).toBeFalsy()
+
+    // Re-open modal to check if form is reset
+    await addBtn.trigger('click')
+    await wrapper.vm.$nextTick()
+
+    const modalAgain = document.querySelector('.modal-overlay')
+    const titleInputAgain = modalAgain.querySelector('#task-title')
+    const descInputAgain = modalAgain.querySelector('#task-description')
+
+    expect(titleInputAgain.value).toBe('')
+    expect(descInputAgain.value).toBe('')
+
+    wrapper.unmount()
   })
 
   it('emits drop-task event on drop', async () => {

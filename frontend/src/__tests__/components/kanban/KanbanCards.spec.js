@@ -38,19 +38,29 @@ describe('Kanban - Cards', () => {
     mockApi({ get: mockGet, post: mockPost, del: mockDel })
 
     const { default: KanbanView } = await import('../../../views/KanbanView.vue')
-    const wrapper = mount(KanbanView)
+    const wrapper = mount(KanbanView, { attachTo: document.body })
 
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
 
-    // find the add-card area for the first column
-    const addCardAreas = wrapper.findAll('.add-card')
-    expect(addCardAreas.length).toBeGreaterThan(0)
-    const area = addCardAreas[0]
-    const titleInput = area.find('input')
-    await titleInput.setValue('New Task')
-    const addBtn = area.find('button')
-    await addBtn.trigger('click')
+    // Click the "+ Ajouter une carte" button to open modal
+    const addCardBtn = wrapper.find('.add-card-btn')
+    expect(addCardBtn.exists()).toBe(true)
+    await addCardBtn.trigger('click')
+
+    await wrapper.vm.$nextTick()
+
+    // Find modal in document (TaskModal uses modal-overlay)
+    const modal = document.querySelector('.modal-overlay')
+    expect(modal).toBeTruthy()
+
+    const titleInput = modal.querySelector('#task-title')
+    titleInput.value = 'New Task'
+    titleInput.dispatchEvent(new Event('input'))
+
+    // Click Créer button (first button in modal-actions)
+    const createBtn = modal.querySelector('.modal-actions .btn-primary')
+    createBtn.click()
 
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
@@ -80,6 +90,7 @@ describe('Kanban - Cards', () => {
     expect(wrapper.text()).not.toContain('New Task')
 
     confirmSpy.mockRestore()
+    wrapper.unmount()
   })
 
   it('adds a card with description, priority and type', async () => {
@@ -112,23 +123,37 @@ describe('Kanban - Cards', () => {
     mockApi({ get: mockGet, post: mockPost })
 
     const { default: KanbanView } = await import('../../../views/KanbanView.vue')
-    const wrapper = mount(KanbanView)
+    const wrapper = mount(KanbanView, { attachTo: document.body })
 
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
 
-    const area = wrapper.find('.add-card')
-    const inputs = area.findAll('input')
-    // title then description
-    await inputs[0].setValue('New Task')
-    await inputs[1].setValue('Details')
+    // Click button to open modal
+    const addCardBtn = wrapper.find('.add-card-btn')
+    await addCardBtn.trigger('click')
+    await wrapper.vm.$nextTick()
 
-    const selects = area.findAll('select')
-    await selects[0].setValue('High') // priority
-    await selects[1].setValue('Bug') // type
+    const modal = document.querySelector('.modal-overlay')
+    expect(modal).toBeTruthy()
 
-    const addBtn = area.find('button')
-    await addBtn.trigger('click')
+    // Fill form fields
+    const titleInput = modal.querySelector('#task-title')
+    const descInput = modal.querySelector('#task-description')
+    const prioritySelect = modal.querySelector('#task-priority')
+    const typeSelect = modal.querySelector('#task-type')
+
+    titleInput.value = 'New Task'
+    titleInput.dispatchEvent(new Event('input'))
+    descInput.value = 'Details'
+    descInput.dispatchEvent(new Event('input'))
+    prioritySelect.value = 'High'
+    prioritySelect.dispatchEvent(new Event('change'))
+    typeSelect.value = 'Bug'
+    typeSelect.dispatchEvent(new Event('change'))
+
+    // Submit
+    const createBtn = modal.querySelector('.modal-actions .btn-primary')
+    createBtn.click()
 
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
@@ -148,6 +173,8 @@ describe('Kanban - Cards', () => {
     expect(wrapper.text()).toContain('Details')
     expect(wrapper.find('.badge.priority').text()).toBe('High')
     expect(wrapper.find('.badge.type').text()).toBe('Bug')
+
+    wrapper.unmount()
   })
 
   it('edits a card and updates its fields (inline editor)', async () => {

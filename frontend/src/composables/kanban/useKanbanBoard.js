@@ -7,7 +7,6 @@ export function useKanbanBoard() {
   const isAuthenticated = ref(false)
 
   const columns = reactive([])
-  const newColumnName = ref('')
 
   let currentBoardId = null
   let draggedTask = null
@@ -34,6 +33,12 @@ export function useKanbanBoard() {
       if (!board) {
         board = await post('/api/boards', { name: 'Mon tableau' })
       }
+
+      if (!board || !board._id) {
+        console.warn('useKanbanBoard: no valid board available')
+        return
+      }
+
       currentBoardId = board._id
 
       const cols = await get(`/api/boards/${currentBoardId}/columns`)
@@ -51,20 +56,22 @@ export function useKanbanBoard() {
     }
   }
 
-  async function addColumn() {
-    if (!newColumnName.value || !newColumnName.value.trim()) return
-    const title = newColumnName.value.trim()
-    const key = slugify(title)
+  async function addColumn(title) {
+    if (!title || !title.trim()) return
+    const trimmedTitle = title.trim()
+    const key = slugify(trimmedTitle)
     const order = columns.length
-    const created = await post(`/api/boards/${currentBoardId}/columns`, { key, title, order })
+    const created = await post(`/api/boards/${currentBoardId}/columns`, {
+      key,
+      title: trimmedTitle,
+      order,
+    })
     columns.push({ ...created, tasks: [] })
-    newColumnName.value = ''
   }
 
-  async function renameColumn(column) {
-    const newName = prompt('Nouveau nom de la colonne :', column.title)
-    if (!newName || !newName.trim()) return
-    const updated = await patch(`/api/columns/${column._id}`, { title: newName.trim() })
+  async function renameColumn(column, newTitle) {
+    if (!newTitle || !newTitle.trim()) return
+    const updated = await patch(`/api/columns/${column._id}`, { title: newTitle.trim() })
     column.title = updated.title
   }
 
@@ -128,7 +135,6 @@ export function useKanbanBoard() {
 
   return {
     columns,
-    newColumnName,
     isAuthenticated,
     addColumn,
     renameColumn,

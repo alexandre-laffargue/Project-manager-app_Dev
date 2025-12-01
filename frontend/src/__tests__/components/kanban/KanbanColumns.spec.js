@@ -28,17 +28,29 @@ describe('Kanban - Columns', () => {
     mockApi({ get: mockGet, post: mockPost })
 
     const { default: KanbanView } = await import('../../../views/KanbanView.vue')
-    const wrapper = mount(KanbanView)
+    const wrapper = mount(KanbanView, { attachTo: document.body })
 
     // wait for initial load
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
 
-    // set input and click add
-    const input = wrapper.find('.kanban-controls input')
-    await input.setValue('New Col')
-    const addBtn = wrapper.find('.kanban-controls button')
+    // Click button to open column modal
+    const addBtn = wrapper.find('.btn-create')
+    expect(addBtn.exists()).toBe(true)
     await addBtn.trigger('click')
+    await wrapper.vm.$nextTick()
+
+    // Find modal and fill input
+    const modal = document.querySelector('.modal-overlay')
+    expect(modal).toBeTruthy()
+
+    const titleInput = modal.querySelector('#column-title')
+    titleInput.value = 'New Col'
+    titleInput.dispatchEvent(new Event('input'))
+
+    // Submit modal
+    const createBtn = modal.querySelector('.modal-actions .btn-primary')
+    createBtn.click()
 
     // allow async updates
     await Promise.resolve()
@@ -50,9 +62,10 @@ describe('Kanban - Columns', () => {
       expect.objectContaining({ title: 'New Col' }),
     )
 
-    // new column title should appear and input cleared
+    // new column title should appear
     expect(wrapper.text()).toContain('New Col')
-    expect(wrapper.find('.kanban-controls input').element.value).toBe('')
+
+    wrapper.unmount()
   })
 
   it('deletes a column when confirmed', async () => {

@@ -7,22 +7,8 @@
     </div>
 
     <div class="tasks-list">
-      <!-- add card form local to column -->
-      <div class="add-card">
-        <input v-model="newTitle" placeholder="Titre de la carte" />
-        <input v-model="newDescription" placeholder="Description" />
-        <select v-model="newPriority">
-          <option>Low</option>
-          <option>Medium</option>
-          <option>High</option>
-        </select>
-        <select v-model="newType">
-          <option>Bug</option>
-          <option>Feature</option>
-          <option>Task</option>
-        </select>
-        <button @click="createCard">Ajouter</button>
-      </div>
+      <!-- Button to open modal for adding card -->
+      <button class="add-card-btn" @click="openModal">+ Ajouter une carte</button>
 
       <KanbanCard
         v-for="task in column.tasks"
@@ -33,12 +19,21 @@
         @delete="onDelete"
       />
     </div>
+
+    <TaskModal
+      :is-open="isModalOpen"
+      :column-id="column._id"
+      :position="column.tasks.length"
+      @close="closeModal"
+      @submit="handleSubmit"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import KanbanCard from '@/components/kanban/KanbanCard.vue'
+import TaskModal from '@/components/kanban/TaskModal.vue'
 
 const props = defineProps({ column: { type: Object, required: true } })
 const emit = defineEmits([
@@ -51,27 +46,19 @@ const emit = defineEmits([
   'drop-task',
 ])
 
-const newTitle = ref('')
-const newDescription = ref('')
-const newPriority = ref('Medium')
-const newType = ref('Task')
+const isModalOpen = ref(false)
 
-function createCard() {
-  const title = (newTitle.value || '').trim()
-  if (!title) return
-  const payload = {
-    title,
-    description: newDescription.value || '',
-    priority: newPriority.value || 'Medium',
-    type: newType.value || 'Task',
-    columnId: props.column._id,
-    position: props.column.tasks.length,
-  }
+function openModal() {
+  isModalOpen.value = true
+}
+
+function closeModal() {
+  isModalOpen.value = false
+}
+
+function handleSubmit(payload) {
   emit('create-card', props.column, payload)
-  newTitle.value = ''
-  newDescription.value = ''
-  newPriority.value = 'Medium'
-  newType.value = 'Task'
+  closeModal()
 }
 
 function onStartDrag(card) {
@@ -92,7 +79,23 @@ function onDrop() {
 </script>
 
 <style scoped>
-.add-card {
+.add-card-btn {
+  width: 100%;
+  padding: 0.75rem;
   margin-bottom: 12px;
+  background-color: #f3f4f6;
+  border: 2px dashed #9ca3af;
+  border-radius: 6px;
+  color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-card-btn:hover {
+  background-color: #e5e7eb;
+  border-color: #6b7280;
+  color: #374151;
 }
 </style>

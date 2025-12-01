@@ -84,12 +84,12 @@ describe('useKanbanBoard composable', () => {
     mockApi({ get: mockGet, post: mockPost })
 
     const { default: useKanbanBoardModule } = await import('@/composables/kanban/useKanbanBoard')
-    const { columns, newColumnName, addColumn } = useKanbanBoardModule()
+    const { columns, addColumn } = useKanbanBoardModule()
 
     await new Promise((r) => setTimeout(r, 100))
 
-    newColumnName.value = 'New Col'
-    await addColumn()
+    // Call addColumn with title parameter
+    await addColumn('New Col')
 
     expect(mockPost).toHaveBeenCalledWith('/api/boards/board1/columns', {
       key: 'new-col',
@@ -98,7 +98,6 @@ describe('useKanbanBoard composable', () => {
     })
     expect(columns.length).toBe(1)
     expect(columns[0].title).toBe('New Col')
-    expect(newColumnName.value).toBe('')
   })
 
   it('handleCreateCard adds a card to the correct column', async () => {
