@@ -48,34 +48,56 @@ describe('KanbanCard - Edge Cases', () => {
   })
 
   it('cancels edit mode and restores original values', async () => {
-    const wrapper = mount(KanbanCard, { props: { card: mockCard } })
+    const wrapper = mount(KanbanCard, { props: { card: mockCard }, attachTo: document.body })
     
-    // Enter edit mode
+    // Enter edit mode (opens modal)
     await wrapper.find('.task-actions button:first-child').trigger('click')
-    expect(wrapper.find('.edit-title').exists()).toBe(true)
+    await wrapper.vm.$nextTick()
     
-    // Change values
-    await wrapper.find('.edit-title').setValue('Changed Title')
+    // Modal should be visible
+    const modal = document.querySelector('.modal-overlay')
+    expect(modal).toBeTruthy()
+    
+    // Change values in modal
+    const titleInput = modal.querySelector('input[placeholder="Titre de la carte"]')
+    titleInput.value = 'Changed Title'
+    titleInput.dispatchEvent(new Event('input'))
     
     // Cancel
-    const cancelBtn = wrapper.findAll('.edit-controls button').find(b => b.text().includes('Annuler'))
-    await cancelBtn.trigger('click')
+    const cancelBtn = modal.querySelector('.btn-secondary')
+    cancelBtn.click()
+    await wrapper.vm.$nextTick()
     
-    // Should show original title
+    // Modal should be closed and original title preserved
+    expect(document.querySelector('.modal-overlay')).toBeFalsy()
     expect(wrapper.find('.task-title').text()).toBe('Test Card')
+    
+    wrapper.unmount()
   })
 
   it('validates required fields before save', async () => {
-    const wrapper = mount(KanbanCard, { props: { card: mockCard } })
+    const wrapper = mount(KanbanCard, { props: { card: mockCard }, attachTo: document.body })
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
     
+    // Open modal
     await wrapper.find('.task-actions button:first-child').trigger('click')
-    await wrapper.find('.edit-title').setValue('')
+    await wrapper.vm.$nextTick()
     
-    const saveBtn = wrapper.findAll('.edit-controls button').find(b => b.text().includes('Sauvegarder'))
-    await saveBtn.trigger('click')
+    const modal = document.querySelector('.modal-overlay')
+    const titleInput = modal.querySelector('input[placeholder="Titre de la carte"]')
+    titleInput.value = ''
+    titleInput.dispatchEvent(new Event('input'))
     
-    // Empty title should not emit update
+    const saveBtn = modal.querySelector('.btn-primary')
+    saveBtn.click()
+    await wrapper.vm.$nextTick()
+    
+    // Should show alert and not emit update
+    expect(alertSpy).toHaveBeenCalledWith('Le titre est obligatoire.')
     expect(wrapper.emitted('update')).toBeFalsy()
+    
+    alertSpy.mockRestore()
+    wrapper.unmount()
   })
 
   it('handles all priority levels correctly', async () => {

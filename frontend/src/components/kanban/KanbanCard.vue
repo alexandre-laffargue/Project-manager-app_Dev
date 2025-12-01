@@ -1,71 +1,89 @@
 <template>
   <div class="task" draggable="true" @dragstart="onDragStart">
-    <!-- View mode -->
-    <template v-if="!editing">
-      <h3 class="task-title">{{ card.title }}</h3>
-      <p class="task-desc">{{ card.description }}</p>
+    <h3 class="task-title">{{ card.title }}</h3>
+    <p class="task-desc">{{ card.description }}</p>
 
-      <div class="task-meta">
-        <span class="badge priority" :class="(card.priority || 'medium').toLowerCase()">{{ card.priority || 'Medium' }}</span>
-        <span class="badge type">{{ card.type || 'Task' }}</span>
-      </div>
+    <div class="task-meta">
+      <span class="badge priority" :class="(card.priority || 'medium').toLowerCase()">{{ card.priority || 'Medium' }}</span>
+      <span class="badge type">{{ card.type || 'Task' }}</span>
+    </div>
 
-      <div class="task-actions">
-        <button @click="startEdit">Modifier</button>
-        <button @click="$emit('delete', card)">X</button>
-      </div>
-    </template>
+    <div class="task-actions">
+      <button @click="openEditModal">Modifier</button>
+      <button @click="$emit('delete', card)">X</button>
+    </div>
+  </div>
 
-    <!-- Edit mode -->
-    <template v-else>
-      <div class="task-edit">
-        <input v-model="state.title" class="edit-title" />
-        <textarea v-model="state.description" class="edit-desc"></textarea>
-        <div class="edit-controls">
-          <select v-model="state.priority">
-            <option>Low</option>
-            <option>Medium</option>
-            <option>High</option>
-          </select>
-          <select v-model="state.type">
-            <option>Bug</option>
-            <option>Feature</option>
-            <option>Task</option>
-          </select>
-          <button @click="save">Sauvegarder</button>
-          <button @click="cancel">Annuler</button>
+  <!-- Modal d'édition -->
+  <Teleport to="body">
+    <div v-if="showModal" class="modal-overlay" @click.self="closeEditModal">
+      <div class="modal-content">
+        <h2>Modifier la carte</h2>
+        <div class="modal-form">
+          <label>
+            Titre :
+            <input v-model="state.title" placeholder="Titre de la carte" />
+          </label>
+          <label>
+            Description :
+            <textarea v-model="state.description" placeholder="Description" rows="4"></textarea>
+          </label>
+          <label>
+            Priorité :
+            <select v-model="state.priority">
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+            </select>
+          </label>
+          <label>
+            Type :
+            <select v-model="state.type">
+              <option>Bug</option>
+              <option>Feature</option>
+              <option>Task</option>
+            </select>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button @click="save" class="btn-primary">Enregistrer</button>
+          <button @click="closeEditModal" class="btn-secondary">Annuler</button>
         </div>
       </div>
-    </template>
-  </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
+import '@/assets/modal.css'
 
 const props = defineProps({
   card: { type: Object, required: true }
 })
 const emits = defineEmits(['update', 'delete', 'start-drag'])
 
-const editing = ref(false)
+const showModal = ref(false)
 const state = reactive({ title: '', description: '', priority: 'Medium', type: 'Task' })
 
-function startEdit() {
+function openEditModal() {
   state.title = props.card.title || ''
   state.description = props.card.description || ''
   state.priority = props.card.priority || 'Medium'
   state.type = props.card.type || 'Task'
-  editing.value = true
+  showModal.value = true
 }
 
-function cancel() {
-  editing.value = false
+function closeEditModal() {
+  showModal.value = false
 }
 
 async function save() {
   const title = (state.title || '').trim()
-  if (!title) return
+  if (!title) {
+    alert('Le titre est obligatoire.')
+    return
+  }
   const allowedPriorities = ['Low', 'Medium', 'High']
   const allowedTypes = ['Bug', 'Feature', 'Task']
   const payload = {
@@ -75,16 +93,10 @@ async function save() {
     type: allowedTypes.includes(state.type) ? state.type : 'Task',
   }
   emits('update', props.card, payload)
-  editing.value = false
+  closeEditModal()
 }
 
 function onDragStart() {
   emits('start-drag', props.card)
 }
 </script>
-
-<style scoped>
-.edit-title { width: 100%; margin-bottom: 6px }
-.edit-desc { width: 100%; min-height: 60px }
-.edit-controls { display: flex; gap: 8px; align-items: center; margin-top:6px }
-</style>

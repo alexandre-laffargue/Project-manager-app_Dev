@@ -147,7 +147,7 @@ describe('Kanban - Cards', () => {
     mockApi({ get: mockGet, patch: mockPatch })
 
     const { default: KanbanView } = await import('../../../views/KanbanView.vue')
-    const wrapper = mount(KanbanView)
+    const wrapper = mount(KanbanView, { attachTo: document.body })
 
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
@@ -157,34 +157,40 @@ describe('Kanban - Cards', () => {
     const task = tasks.find((t) => t.text().includes('Old Title'))
     expect(task).toBeTruthy()
 
-    // open inline editor by clicking the 'Modifier' button
+    // open modal by clicking the 'Modifier' button
     const editBtns = task.findAll('.task-actions button')
     const editBtn = editBtns.find((b) => b.text().includes('Modifier')) || editBtns[0]
     await editBtn.trigger('click')
 
+    await wrapper.vm.$nextTick()
     await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 0))
 
-    // re-query the task area (DOM changed after editing)
-    const updatedTask = wrapper.findAll('.task').find((t) => t.text().includes('Old Title') || t.find('.edit-title').exists())
-    expect(updatedTask).toBeTruthy()
+    // Find modal in document body (Teleport)
+    const modal = document.querySelector('.modal-overlay')
+    expect(modal).toBeTruthy()
 
-    // fill inline editor fields
-    const titleInput = updatedTask.find('.edit-title')
-    const descInput = updatedTask.find('.edit-desc')
-    const selects = updatedTask.findAll('select')
-    await titleInput.setValue('New Title')
-    await descInput.setValue('New desc')
+    // fill modal fields
+    const titleInput = modal.querySelector('input[placeholder="Titre de la carte"]')
+    const descInput = modal.querySelector('textarea[placeholder="Description"]')
+    const selects = modal.querySelectorAll('select')
+    
+    titleInput.value = 'New Title'
+    titleInput.dispatchEvent(new Event('input'))
+    descInput.value = 'New desc'
+    descInput.dispatchEvent(new Event('input'))
+    
     // set priority and type to valid values
     if (selects.length >= 2) {
-      await selects[0].setValue('High')
-      await selects[1].setValue('Feature')
+      selects[0].value = 'High'
+      selects[0].dispatchEvent(new Event('change'))
+      selects[1].value = 'Feature'
+      selects[1].dispatchEvent(new Event('change'))
     }
 
-    // click save (find button labeled 'Sauvegarder') inside the updated task
-    const saveBtn = updatedTask.findAll('button').find((b) => b.text().includes('Sauvegarder'))
-    expect(saveBtn.exists()).toBe(true)
-    await saveBtn.trigger('click')
+    // click save button in modal
+    const saveBtn = modal.querySelector('.btn-primary')
+    expect(saveBtn).toBeTruthy()
+    saveBtn.click()
 
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
@@ -197,6 +203,8 @@ describe('Kanban - Cards', () => {
     expect(wrapper.text()).toContain('New desc')
     expect(wrapper.find('.badge.priority').text()).toBe('High')
     expect(wrapper.find('.badge.type').text()).toBe('Feature')
+    
+    wrapper.unmount()
   })
 
   it('moves a card from one column to another', async () => {

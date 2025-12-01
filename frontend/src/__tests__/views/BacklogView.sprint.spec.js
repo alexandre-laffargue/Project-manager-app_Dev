@@ -91,23 +91,30 @@ describe('Backlog - sprint creation', () => {
     mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     mockApi({ get: mockGet, patch: mockPatch })
 
-    // provide prompt values in order: name, start, end, objective
-    const prompts = ['Sprint 1 - Updated', '2025-11-21', '2025-11-28', 'Updated objective']
-    const promptSpy = vi.spyOn(window, 'prompt').mockImplementation(() => prompts.shift())
-
     const { default: BacklogView } = await import('../../views/BacklogView.vue')
-    const wrapper = mount(BacklogView)
+    const wrapper = mount(BacklogView, { attachTo: document.body })
 
     // wait for load
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
 
-    // click Modifier on the sprint (first button)
+    // click Modifier on the sprint (opens modal)
     const actionBtns = wrapper.findAll('.sprint .sprint-actions button')
     expect(actionBtns.length).toBeGreaterThanOrEqual(1)
     await actionBtns[0].trigger('click')
+    await wrapper.vm.$nextTick()
 
-    // allow async patch
+    // Fill modal form
+    const modal = wrapper.find('.modal-overlay')
+    expect(modal.exists()).toBe(true)
+    
+    await modal.find('input[placeholder="Nom du sprint"]').setValue('Sprint 1 - Updated')
+    await modal.findAll('input[type="date"]')[0].setValue('2025-11-21')
+    await modal.findAll('input[type="date"]')[1].setValue('2025-11-28')
+    await modal.find('textarea').setValue('Updated objective')
+    
+    // Click save button
+    await modal.find('.btn-primary').trigger('click')
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 0))
 
@@ -116,8 +123,8 @@ describe('Backlog - sprint creation', () => {
     // DOM updated
     expect(wrapper.text()).toContain('Sprint 1 - Updated')
     expect(wrapper.text()).toContain('Updated objective')
-
-    promptSpy.mockRestore()
+    
+    wrapper.unmount()
   })
 
   it('does not call patch when prompts return invalid values (empty name)', async () => {

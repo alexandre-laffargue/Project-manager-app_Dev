@@ -26,7 +26,7 @@
           </p>
           <p><strong>Objectif :</strong> {{ sprint.objective }}</p>
           <div class="sprint-actions">
-            <button @click="editSprint(sprint)">Modifier</button>
+            <button @click="openEditModal(sprint)">Modifier</button>
             <button @click="deleteSprint(sprint)">Supprimer</button>
           </div>
         </div>
@@ -36,12 +36,42 @@
         <p>Aucun sprint créé pour le moment.</p>
       </div>
     </div>
+
+    <!-- Modal d'édition -->
+    <div v-if="editingSprintId" class="modal-overlay" @click.self="closeEditModal">
+      <div class="modal-content">
+        <h2>Modifier le sprint</h2>
+        <div class="modal-form">
+          <label>
+            Nom du sprint :
+            <input v-model="editForm.name" placeholder="Nom du sprint" />
+          </label>
+          <label>
+            Date de début :
+            <input type="date" v-model="editForm.startDate" />
+          </label>
+          <label>
+            Date de fin :
+            <input type="date" v-model="editForm.endDate" />
+          </label>
+          <label>
+            Objectif :
+            <textarea v-model="editForm.objective" placeholder="Objectif du sprint" rows="4"></textarea>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button @click="saveEditSprint" class="btn-primary">Enregistrer</button>
+          <button @click="closeEditModal" class="btn-secondary">Annuler</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted } from 'vue'
 import '@/assets/backlog.css'
+import '@/assets/modal.css'
 import { get, post, patch, del } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
 
@@ -50,6 +80,14 @@ const isAuthenticated = ref(false)
 
 const sprints = reactive([])
 const newSprint = reactive({
+  name: '',
+  startDate: '',
+  endDate: '',
+  objective: '',
+})
+
+const editingSprintId = ref(null)
+const editForm = reactive({
   name: '',
   startDate: '',
   endDate: '',
@@ -92,23 +130,49 @@ async function createSprint() {
   }
 }
 
-async function editSprint(sprint) {
-  const newName = prompt('Nom du sprint :', sprint.name)
-  const newStart = prompt('Date de début (YYYY-MM-DD) :', sprint.startDate)
-  const newEnd = prompt('Date de fin (YYYY-MM-DD) :', sprint.endDate)
-  const newObjective = prompt('Objectif :', sprint.objective)
-  if (!newName?.trim() || !newStart || !newEnd) return
-  const updated = await patch(`/api/sprints/${sprint._id}`, {
-    name: newName,
-    startDate: newStart,
-    endDate: newEnd,
-    objective: newObjective,
-  })
+function openEditModal(sprint) {
+  editingSprintId.value = sprint._id
+  editForm.name = sprint.name
+  editForm.startDate = sprint.startDate ? sprint.startDate.split('T')[0] : ''
+  editForm.endDate = sprint.endDate ? sprint.endDate.split('T')[0] : ''
+  editForm.objective = sprint.objective || ''
+}
 
-  sprint.name = updated.name
-  sprint.startDate = updated.startDate
-  sprint.endDate = updated.endDate
-  sprint.objective = updated.objective
+function closeEditModal() {
+  editingSprintId.value = null
+  editForm.name = ''
+  editForm.startDate = ''
+  editForm.endDate = ''
+  editForm.objective = ''
+}
+
+async function saveEditSprint() {
+  if (!editForm.name.trim()) {
+    alert('Le nom du sprint est obligatoire.')
+    return
+  }
+
+  try {
+    const updated = await patch(`/api/sprints/${editingSprintId.value}`, {
+      name: editForm.name,
+      startDate: editForm.startDate,
+      endDate: editForm.endDate,
+      objective: editForm.objective,
+    })
+
+    const sprint = sprints.find((s) => s._id === editingSprintId.value)
+    if (sprint) {
+      sprint.name = updated.name
+      sprint.startDate = updated.startDate
+      sprint.endDate = updated.endDate
+      sprint.objective = updated.objective
+    }
+
+    closeEditModal()
+  } catch (err) {
+    console.error('Erreur lors de la modification du sprint :', err)
+    alert('Erreur lors de la modification du sprint.')
+  }
 }
 
 async function deleteSprint(sprint) {
