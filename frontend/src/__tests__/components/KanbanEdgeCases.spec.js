@@ -9,13 +9,13 @@ describe('KanbanCard - Edge Cases', () => {
     title: 'Test Card',
     description: 'Test Description',
     priority: 'Medium',
-    type: 'Task'
+    type: 'Task',
   }
 
   it('handles empty description', () => {
     const card = { ...mockCard, description: '' }
     const wrapper = mount(KanbanCard, { props: { card } })
-    
+
     expect(wrapper.find('.task-desc').text()).toBe('')
   })
 
@@ -23,7 +23,7 @@ describe('KanbanCard - Edge Cases', () => {
     const longTitle = 'A'.repeat(200)
     const card = { ...mockCard, title: longTitle }
     const wrapper = mount(KanbanCard, { props: { card } })
-    
+
     expect(wrapper.find('.task-title').text()).toBe(longTitle)
   })
 
@@ -31,82 +31,82 @@ describe('KanbanCard - Edge Cases', () => {
     const minimalCard = {
       _id: 'card1',
       title: 'Minimal',
-      columnId: 'col1'
+      columnId: 'col1',
     }
     const wrapper = mount(KanbanCard, { props: { card: minimalCard } })
-    
+
     expect(wrapper.exists()).toBe(true)
   })
 
   it('emits delete event when delete button clicked', async () => {
     const wrapper = mount(KanbanCard, { props: { card: mockCard } })
-    
+
     await wrapper.find('.task-actions button:last-child').trigger('click')
-    
+
     expect(wrapper.emitted('delete')).toBeTruthy()
     expect(wrapper.emitted('delete')[0]).toEqual([mockCard])
   })
 
   it('cancels edit mode and restores original values', async () => {
     const wrapper = mount(KanbanCard, { props: { card: mockCard }, attachTo: document.body })
-    
+
     // Enter edit mode (opens modal)
     await wrapper.find('.task-actions button:first-child').trigger('click')
     await wrapper.vm.$nextTick()
-    
+
     // Modal should be visible
     const modal = document.querySelector('.modal-overlay')
     expect(modal).toBeTruthy()
-    
+
     // Change values in modal
     const titleInput = modal.querySelector('input[placeholder="Titre de la carte"]')
     titleInput.value = 'Changed Title'
     titleInput.dispatchEvent(new Event('input'))
-    
+
     // Cancel
     const cancelBtn = modal.querySelector('.btn-secondary')
     cancelBtn.click()
     await wrapper.vm.$nextTick()
-    
+
     // Modal should be closed and original title preserved
     expect(document.querySelector('.modal-overlay')).toBeFalsy()
     expect(wrapper.find('.task-title').text()).toBe('Test Card')
-    
+
     wrapper.unmount()
   })
 
   it('validates required fields before save', async () => {
     const wrapper = mount(KanbanCard, { props: { card: mockCard }, attachTo: document.body })
     const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
-    
+
     // Open modal
     await wrapper.find('.task-actions button:first-child').trigger('click')
     await wrapper.vm.$nextTick()
-    
+
     const modal = document.querySelector('.modal-overlay')
     const titleInput = modal.querySelector('input[placeholder="Titre de la carte"]')
     titleInput.value = ''
     titleInput.dispatchEvent(new Event('input'))
-    
+
     const saveBtn = modal.querySelector('.btn-primary')
     saveBtn.click()
     await wrapper.vm.$nextTick()
-    
+
     // Should show alert and not emit update
     expect(alertSpy).toHaveBeenCalledWith('Le titre est obligatoire.')
     expect(wrapper.emitted('update')).toBeFalsy()
-    
+
     alertSpy.mockRestore()
     wrapper.unmount()
   })
 
   it('handles all priority levels correctly', async () => {
     const priorities = ['Low', 'Medium', 'High']
-    
+
     for (const priority of priorities) {
       const card = { ...mockCard, priority }
       const wrapper = mount(KanbanCard, { props: { card } })
-      
+
       const badge = wrapper.find('.badge.priority')
       expect(badge.text()).toBe(priority)
       expect(badge.classes()).toContain(priority.toLowerCase())
@@ -115,20 +115,20 @@ describe('KanbanCard - Edge Cases', () => {
 
   it('handles all task types correctly', () => {
     const types = ['Bug', 'Feature', 'Task']
-    
+
     for (const type of types) {
       const card = { ...mockCard, type }
       const wrapper = mount(KanbanCard, { props: { card } })
-      
+
       expect(wrapper.find('.badge.type').text()).toBe(type)
     }
   })
 
   it('emits start-drag event with card data', async () => {
     const wrapper = mount(KanbanCard, { props: { card: mockCard } })
-    
+
     await wrapper.find('.task').trigger('dragstart')
-    
+
     expect(wrapper.emitted('start-drag')).toBeTruthy()
   })
 })
@@ -139,8 +139,8 @@ describe('KanbanColumn - Edge Cases', () => {
     title: 'To Do',
     tasks: [
       { _id: 'task1', title: 'Task 1', priority: 'High', type: 'Bug' },
-      { _id: 'task2', title: 'Task 2', priority: 'Low', type: 'Feature' }
-    ]
+      { _id: 'task2', title: 'Task 2', priority: 'Low', type: 'Feature' },
+    ],
   }
 
   beforeEach(() => {
@@ -152,10 +152,10 @@ describe('KanbanColumn - Edge Cases', () => {
     const wrapper = mount(KanbanColumn, {
       props: { column: emptyColumn },
       global: {
-        stubs: { KanbanCard: true }
-      }
+        stubs: { KanbanCard: true },
+      },
     })
-    
+
     expect(wrapper.find('.tasks-list').exists()).toBe(true)
     expect(wrapper.findAll('.task').length).toBe(0)
   })
@@ -165,17 +165,17 @@ describe('KanbanColumn - Edge Cases', () => {
       _id: `task${i}`,
       title: `Task ${i}`,
       priority: 'Medium',
-      type: 'Task'
+      type: 'Task',
     }))
     const column = { ...mockColumn, tasks: manyTasks }
-    
+
     const wrapper = mount(KanbanColumn, {
       props: { column },
       global: {
-        stubs: { KanbanCard: true }
-      }
+        stubs: { KanbanCard: true },
+      },
     })
-    
+
     expect(wrapper.findAll('kanban-card-stub').length).toBe(50)
   })
 
@@ -183,13 +183,13 @@ describe('KanbanColumn - Edge Cases', () => {
     const wrapper = mount(KanbanColumn, {
       props: { column: mockColumn },
       global: {
-        stubs: { KanbanCard: true }
-      }
+        stubs: { KanbanCard: true },
+      },
     })
-    
+
     const addBtn = wrapper.find('.add-card button')
     await addBtn.trigger('click')
-    
+
     expect(wrapper.emitted('create-card')).toBeFalsy()
   })
 
@@ -197,17 +197,17 @@ describe('KanbanColumn - Edge Cases', () => {
     const wrapper = mount(KanbanColumn, {
       props: { column: mockColumn },
       global: {
-        stubs: { KanbanCard: true }
-      }
+        stubs: { KanbanCard: true },
+      },
     })
-    
+
     const inputs = wrapper.findAll('.add-card input')
     await inputs[0].setValue('New Task')
     await inputs[1].setValue('Description')
-    
+
     const addBtn = wrapper.find('.add-card button')
     await addBtn.trigger('click')
-    
+
     // Form should be reset
     expect(inputs[0].element.value).toBe('')
     expect(inputs[1].element.value).toBe('')
@@ -217,12 +217,12 @@ describe('KanbanColumn - Edge Cases', () => {
     const wrapper = mount(KanbanColumn, {
       props: { column: mockColumn },
       global: {
-        stubs: { KanbanCard: true }
-      }
+        stubs: { KanbanCard: true },
+      },
     })
-    
+
     await wrapper.find('.column').trigger('drop')
-    
+
     expect(wrapper.emitted('drop-task')).toBeTruthy()
     expect(wrapper.emitted('drop-task')[0]).toEqual([mockColumn._id])
   })

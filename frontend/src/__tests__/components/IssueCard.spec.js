@@ -9,11 +9,11 @@ describe('IssueCard', () => {
       title: 'Test Issue',
       description: 'Test description',
       type: 'Task',
-      priority: 'High'
+      priority: 'High',
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] }
+      props: { issue, sprints: [] },
     })
 
     expect(wrapper.text()).toContain('Test Issue')
@@ -32,12 +32,12 @@ describe('IssueCard', () => {
       checklist: [
         { id: '1', text: 'Task 1', checked: true },
         { id: '2', text: 'Task 2', checked: false },
-        { id: '3', text: 'Task 3', checked: true }
-      ]
+        { id: '3', text: 'Task 3', checked: true },
+      ],
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] }
+      props: { issue, sprints: [] },
     })
 
     // Should display checklist progress (2/3)
@@ -53,16 +53,16 @@ describe('IssueCard', () => {
       title: 'Sprint Issue',
       type: 'Bug',
       priority: 'High',
-      sprintId: 'sprint1'
+      sprintId: 'sprint1',
     }
 
     const sprints = [
       { _id: 'sprint1', name: 'Sprint 1' },
-      { _id: 'sprint2', name: 'Sprint 2' }
+      { _id: 'sprint2', name: 'Sprint 2' },
     ]
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints }
+      props: { issue, sprints },
     })
 
     // Issue card shows "Sprint assigné" badge when linked to a sprint
@@ -77,11 +77,11 @@ describe('IssueCard', () => {
       title: 'Backlog Issue',
       type: 'Task',
       priority: 'Low',
-      sprintId: null
+      sprintId: null,
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] }
+      props: { issue, sprints: [] },
     })
 
     // Should not show any sprint badge
@@ -99,12 +99,12 @@ describe('IssueCard', () => {
       priority: 'Medium',
       checklist: [
         { id: '1', text: 'Task 1', checked: true },
-        { id: '2', text: 'Task 2', checked: true }
-      ]
+        { id: '2', text: 'Task 2', checked: true },
+      ],
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] }
+      props: { issue, sprints: [] },
     })
 
     // Should show 2/2 completed
@@ -122,12 +122,12 @@ describe('IssueCard', () => {
       checklist: [
         { id: '1', text: 'Task 1', checked: false },
         { id: '2', text: 'Task 2', checked: false },
-        { id: '3', text: 'Task 3', checked: false }
-      ]
+        { id: '3', text: 'Task 3', checked: false },
+      ],
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] }
+      props: { issue, sprints: [] },
     })
 
     // Should show 0/3 completed
@@ -142,16 +142,14 @@ describe('IssueCard', () => {
       _id: 'issue1',
       title: 'Test Issue',
       type: 'Task',
-      priority: 'Medium'
+      priority: 'Medium',
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] }
+      props: { issue, sprints: [] },
     })
 
-    const editBtn = wrapper.findAll('button').find(btn => 
-      btn.text().includes('Modifier')
-    )
+    const editBtn = wrapper.findAll('button').find((btn) => btn.text().includes('Modifier'))
 
     if (editBtn) {
       await editBtn.trigger('click')
@@ -167,16 +165,14 @@ describe('IssueCard', () => {
       _id: 'issue1',
       title: 'Test Issue',
       type: 'Task',
-      priority: 'Medium'
+      priority: 'Medium',
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] }
+      props: { issue, sprints: [] },
     })
 
-    const deleteBtn = wrapper.findAll('button').find(btn => 
-      btn.text().includes('Supprimer')
-    )
+    const deleteBtn = wrapper.findAll('button').find((btn) => btn.text().includes('Supprimer'))
 
     if (deleteBtn) {
       await deleteBtn.trigger('click')
@@ -192,11 +188,11 @@ describe('IssueCard', () => {
       _id: 'issue1',
       title: 'High Priority',
       type: 'Bug',
-      priority: 'High'
+      priority: 'High',
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue: highIssue, sprints: [] }
+      props: { issue: highIssue, sprints: [] },
     })
 
     const html = wrapper.html()
@@ -210,12 +206,12 @@ describe('IssueCard', () => {
       _id: 'issue1',
       title: 'Simple Issue',
       type: 'Task',
-      priority: 'Medium'
+      priority: 'Medium',
       // No checklist property
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] }
+      props: { issue, sprints: [] },
     })
 
     expect(wrapper.text()).toContain('Simple Issue')

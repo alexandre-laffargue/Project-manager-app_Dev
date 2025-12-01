@@ -49,7 +49,11 @@ describe('LoginView', () => {
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(mockLogin).toHaveBeenCalledWith({ email: 'test@example.com', password: 'password123', remember: false })
+    expect(mockLogin).toHaveBeenCalledWith({
+      email: 'test@example.com',
+      password: 'password123',
+      remember: false,
+    })
     expect(mockPush).toHaveBeenCalledWith('/kanban')
   })
 

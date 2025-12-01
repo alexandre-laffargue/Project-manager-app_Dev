@@ -16,7 +16,7 @@ describe('Backlog - issue management with new features', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: []
+      issues: [],
     }
 
     const createdIssue = {
@@ -28,9 +28,9 @@ describe('Backlog - issue management with new features', () => {
       priority: 'Medium',
       checklist: [
         { id: '1', text: 'Task 1', checked: false },
-        { id: '2', text: 'Task 2', checked: false }
+        { id: '2', text: 'Task 2', checked: false },
       ],
-      sprintId: null
+      sprintId: null,
     }
 
     let issuesData = []
@@ -42,7 +42,7 @@ describe('Backlog - issue management with new features', () => {
       return Promise.resolve([])
     })
 
-    const mockPost = vi.fn((url, data) => {
+    const mockPost = vi.fn((url) => {
       if (url === '/api/issues') {
         issuesData.push(createdIssue)
         return Promise.resolve(createdIssue)
@@ -70,7 +70,7 @@ describe('Backlog - issue management with new features', () => {
     // Fill issue form
     const titleInput = modal.querySelector('input[placeholder="Titre de l\'issue"]')
     const textarea = modal.querySelector('textarea')
-    
+
     titleInput.value = 'Issue with checklist'
     titleInput.dispatchEvent(new Event('input'))
     textarea.value = 'Test issue'
@@ -83,15 +83,15 @@ describe('Backlog - issue management with new features', () => {
     if (addChecklistBtn) {
       addChecklistBtn.click()
       await wrapper.vm.$nextTick()
-      
+
       const checklistInputs = modal.querySelectorAll('.checklist-item input[type="text"]')
       if (checklistInputs.length > 0) {
         checklistInputs[0].value = 'Task 1'
         checklistInputs[0].dispatchEvent(new Event('input'))
-        
+
         addChecklistBtn.click()
         await wrapper.vm.$nextTick()
-        
+
         const updatedInputs = modal.querySelectorAll('.checklist-item input[type="text"]')
         if (updatedInputs.length > 1) {
           updatedInputs[1].value = 'Task 2'
@@ -110,11 +110,14 @@ describe('Backlog - issue management with new features', () => {
     await new Promise((r) => setTimeout(r, 100))
 
     // Verify API call
-    expect(mockPost).toHaveBeenCalledWith('/api/issues', expect.objectContaining({
-      title: 'Issue with checklist',
-      description: 'Test issue',
-      checklist: expect.any(Array)
-    }))
+    expect(mockPost).toHaveBeenCalledWith(
+      '/api/issues',
+      expect.objectContaining({
+        title: 'Issue with checklist',
+        description: 'Test issue',
+        checklist: expect.any(Array),
+      }),
+    )
 
     wrapper.unmount()
   })
@@ -128,7 +131,7 @@ describe('Backlog - issue management with new features', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: []
+      issues: [],
     }
 
     const createdIssue = {
@@ -139,7 +142,7 @@ describe('Backlog - issue management with new features', () => {
       type: 'Bug',
       priority: 'High',
       checklist: [],
-      sprintId: 'sprint1'
+      sprintId: 'sprint1',
     }
 
     let issuesData = []
@@ -180,20 +183,20 @@ describe('Backlog - issue management with new features', () => {
     // Fill issue form
     const titleInput = modal.querySelector('input[placeholder="Titre de l\'issue"]')
     const typeSelect = modal.querySelector('select')
-    
+
     titleInput.value = 'Sprint Issue'
     titleInput.dispatchEvent(new Event('input'))
-    
+
     if (typeSelect) {
       typeSelect.value = 'Bug'
       typeSelect.dispatchEvent(new Event('change'))
     }
 
     // Select sprint if available
-    const sprintSelect = Array.from(modal.querySelectorAll('select')).find(
-      select => select.querySelector('option[value="sprint1"]')
+    const sprintSelect = Array.from(modal.querySelectorAll('select')).find((select) =>
+      select.querySelector('option[value="sprint1"]'),
     )
-    
+
     if (sprintSelect) {
       sprintSelect.value = 'sprint1'
       sprintSelect.dispatchEvent(new Event('change'))
@@ -209,7 +212,7 @@ describe('Backlog - issue management with new features', () => {
     await new Promise((r) => setTimeout(r, 100))
 
     // Verify API call includes sprintId
-    const postCalls = mockPost.mock.calls.filter(call => call[0] === '/api/issues')
+    const postCalls = mockPost.mock.calls.filter((call) => call[0] === '/api/issues')
     expect(postCalls.length).toBeGreaterThan(0)
 
     wrapper.unmount()
@@ -224,7 +227,7 @@ describe('Backlog - issue management with new features', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: ['issue1']
+      issues: ['issue1'],
     }
 
     const issueWithChecklist = {
@@ -237,9 +240,9 @@ describe('Backlog - issue management with new features', () => {
       checklist: [
         { id: '1', text: 'Task 1', checked: true },
         { id: '2', text: 'Task 2', checked: false },
-        { id: '3', text: 'Task 3', checked: true }
+        { id: '3', text: 'Task 3', checked: true },
       ],
-      sprintId: 'sprint1'
+      sprintId: 'sprint1',
     }
 
     const mockGet = vi.fn((url) => {
@@ -275,7 +278,7 @@ describe('Backlog - issue management with new features', () => {
       type: 'Task',
       priority: 'Medium',
       checklist: [{ id: '1', text: 'Old Task', checked: false }],
-      sprintId: null
+      sprintId: null,
     }
 
     let issuesData = [issue]
@@ -320,7 +323,7 @@ describe('Backlog - issue management with new features', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: ['issue1']
+      issues: ['issue1'],
     }
 
     const linkedIssue = {
@@ -331,7 +334,7 @@ describe('Backlog - issue management with new features', () => {
       type: 'Feature',
       priority: 'High',
       checklist: [],
-      sprintId: 'sprint1'
+      sprintId: 'sprint1',
     }
 
     const mockGet = vi.fn((url) => {
@@ -366,7 +369,7 @@ describe('Backlog - issue management with new features', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: ['issue1', 'issue2']
+      issues: ['issue1', 'issue2'],
     }
 
     const issues = [
@@ -376,7 +379,7 @@ describe('Backlog - issue management with new features', () => {
         title: 'First Issue',
         type: 'Task',
         priority: 'High',
-        sprintId: 'sprint1'
+        sprintId: 'sprint1',
       },
       {
         _id: 'issue2',
@@ -384,8 +387,8 @@ describe('Backlog - issue management with new features', () => {
         title: 'Second Issue',
         type: 'Bug',
         priority: 'Medium',
-        sprintId: 'sprint1'
-      }
+        sprintId: 'sprint1',
+      },
     ]
 
     const mockGet = vi.fn((url) => {
@@ -410,7 +413,7 @@ describe('Backlog - issue management with new features', () => {
     // Click "Voir les issues" button to expand accordion
     const sprintCard = wrapper.find('.sprint-card')
     const viewIssuesBtn = sprintCard.find('.btn-view-issues')
-    
+
     await viewIssuesBtn.trigger('click')
     await wrapper.vm.$nextTick()
 

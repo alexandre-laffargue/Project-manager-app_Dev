@@ -7,14 +7,14 @@ describe('IssueModal', () => {
     const wrapper = mount(IssueModal, {
       props: {
         show: true,
-        availableSprints: []
+        availableSprints: [],
       },
-      attachTo: document.body
+      attachTo: document.body,
     })
 
     expect(wrapper.props('show')).toBe(true)
     expect(wrapper.props('availableSprints')).toEqual([])
-    
+
     wrapper.unmount()
   })
 
@@ -25,23 +25,21 @@ describe('IssueModal', () => {
       description: 'Test description',
       type: 'Bug',
       priority: 'High',
-      checklist: [
-        { id: '1', text: 'Task 1', checked: false }
-      ],
-      sprintId: 'sprint1'
+      checklist: [{ id: '1', text: 'Task 1', checked: false }],
+      sprintId: 'sprint1',
     }
 
     const wrapper = mount(IssueModal, {
       props: {
         show: true,
         issue,
-        availableSprints: []
+        availableSprints: [],
       },
-      attachTo: document.body
+      attachTo: document.body,
     })
 
     expect(wrapper.props('issue')).toEqual(issue)
-    
+
     wrapper.unmount()
   })
 
@@ -49,9 +47,9 @@ describe('IssueModal', () => {
     const wrapper = mount(IssueModal, {
       props: {
         show: true,
-        availableSprints: []
+        availableSprints: [],
       },
-      attachTo: document.body
+      attachTo: document.body,
     })
 
     await wrapper.vm.$emit('close')
@@ -64,9 +62,9 @@ describe('IssueModal', () => {
     const wrapper = mount(IssueModal, {
       props: {
         show: true,
-        availableSprints: []
+        availableSprints: [],
       },
-      attachTo: document.body
+      attachTo: document.body,
     })
 
     const saveData = {
@@ -75,7 +73,7 @@ describe('IssueModal', () => {
       type: 'Task',
       priority: 'Medium',
       checklist: [{ id: '1', text: 'Task 1', checked: false }],
-      sprintId: null
+      sprintId: null,
     }
 
     await wrapper.vm.$emit('save', saveData)

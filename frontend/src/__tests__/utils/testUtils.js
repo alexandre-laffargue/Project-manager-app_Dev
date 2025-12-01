@@ -1,10 +1,26 @@
 // Helpers to centralize test mocks for frontend tests
 import { vi } from 'vitest'
 
-export function mockAuthStore({ login = null, register = null, token = null, loadFromStorage = () => {}, logout = null, isAuthenticated = false, user = null } = {}) {
+export function mockAuthStore({
+  login = null,
+  register = null,
+  token = null,
+  loadFromStorage = () => {},
+  logout = null,
+  isAuthenticated = false,
+  user = null,
+} = {}) {
   // call vi.mock synchronously so it happens before module imports in tests
   const factory = () => ({
-    useAuthStore: () => ({ login, register, token, loadFromStorage, logout, isAuthenticated, user })
+    useAuthStore: () => ({
+      login,
+      register,
+      token,
+      loadFromStorage,
+      logout,
+      isAuthenticated,
+      user,
+    }),
   })
   vi.doMock('../../stores/auth', factory)
   vi.doMock('@/stores/auth', factory)
@@ -16,12 +32,17 @@ export function mockRouter({ push = () => {}, route = { path: '/' } } = {}) {
     return {
       ...actual,
       useRouter: () => ({ push }),
-      useRoute: () => (route),
+      useRoute: () => route,
     }
   })
 }
 
-export function mockApi({ get = () => Promise.resolve([]), post = () => Promise.resolve(), patch = () => Promise.resolve(), del = () => Promise.resolve() } = {}) {
+export function mockApi({
+  get = () => Promise.resolve([]),
+  post = () => Promise.resolve(),
+  patch = () => Promise.resolve(),
+  del = () => Promise.resolve(),
+} = {}) {
   const factory = () => ({
     get: (...args) => get(...args),
     post: (...args) => post(...args),

@@ -31,8 +31,20 @@ describe('KanbanView', () => {
     mockAuthStore({ loadFromStorage: mockLoad, token: 'fake-token' })
     // sample data returned by API
     const board = { _id: 'board1', name: 'My board' }
-    const cols = [{ _id: 'col1', title: 'To Do' }, { _id: 'col2', title: 'Done' }]
-    const cards = [ { _id: 'card1', title: 'Task A', description: 'Desc', priority: 'Medium', type: 'Task', columnId: 'col1' } ]
+    const cols = [
+      { _id: 'col1', title: 'To Do' },
+      { _id: 'col2', title: 'Done' },
+    ]
+    const cards = [
+      {
+        _id: 'card1',
+        title: 'Task A',
+        description: 'Desc',
+        priority: 'Medium',
+        type: 'Task',
+        columnId: 'col1',
+      },
+    ]
 
     mockGet.mockImplementation((url) => {
       if (url === '/api/boards/me') return Promise.resolve([board])

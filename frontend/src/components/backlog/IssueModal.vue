@@ -42,22 +42,14 @@
             <h3>Checklist</h3>
             <div v-if="form.checklist.length" class="checklist-items">
               <div v-for="(item, index) in form.checklist" :key="item.id" class="checklist-item">
-                <input 
-                  type="checkbox" 
-                  v-model="item.checked"
-                  :id="'check-' + item.id"
-                />
-                <input 
-                  type="text" 
+                <input type="checkbox" v-model="item.checked" :id="'check-' + item.id" />
+                <input
+                  type="text"
                   v-model="item.text"
                   placeholder="Tâche à faire"
                   class="checklist-text"
                 />
-                <button 
-                  type="button"
-                  @click="removeChecklistItem(index)" 
-                  class="btn-remove"
-                >
+                <button type="button" @click="removeChecklistItem(index)" class="btn-remove">
                   ✕
                 </button>
               </div>
@@ -84,7 +76,7 @@ const props = defineProps({
   issue: { type: Object, default: null },
   availableSprints: { type: Array, default: () => [] },
   title: { type: String, default: 'Créer une issue' },
-  saveButtonText: { type: String, default: 'Créer' }
+  saveButtonText: { type: String, default: 'Créer' },
 })
 
 const emit = defineEmits(['close', 'save'])
@@ -95,7 +87,7 @@ const form = reactive({
   type: 'Task',
   priority: 'Medium',
   sprintId: null,
-  checklist: []
+  checklist: [],
 })
 
 function resetForm() {
@@ -111,7 +103,7 @@ function addChecklistItem() {
   form.checklist.push({
     id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
     text: '',
-    checked: false
+    checked: false,
   })
 }
 
@@ -119,38 +111,45 @@ function removeChecklistItem(index) {
   form.checklist.splice(index, 1)
 }
 
-watch(() => props.issue, (newIssue) => {
-  if (newIssue) {
-    form.title = newIssue.title
-    form.description = newIssue.description || ''
-    form.type = newIssue.type || 'Task'
-    form.priority = newIssue.priority || 'Medium'
-    form.sprintId = newIssue.sprintId || null
-    form.checklist = newIssue.checklist ? JSON.parse(JSON.stringify(newIssue.checklist)) : []
-  } else {
-    resetForm()
-  }
-}, { immediate: true })
+watch(
+  () => props.issue,
+  (newIssue) => {
+    if (newIssue) {
+      form.title = newIssue.title
+      form.description = newIssue.description || ''
+      form.type = newIssue.type || 'Task'
+      form.priority = newIssue.priority || 'Medium'
+      form.sprintId = newIssue.sprintId || null
+      form.checklist = newIssue.checklist ? JSON.parse(JSON.stringify(newIssue.checklist)) : []
+    } else {
+      resetForm()
+    }
+  },
+  { immediate: true },
+)
 
-watch(() => props.show, (newShow, oldShow) => {
-  // Réinitialiser le formulaire quand le modal se ferme (après création)
-  if (oldShow && !newShow && !props.issue) {
-    resetForm()
-  }
-})
+watch(
+  () => props.show,
+  (newShow, oldShow) => {
+    // Réinitialiser le formulaire quand le modal se ferme (après création)
+    if (oldShow && !newShow && !props.issue) {
+      resetForm()
+    }
+  },
+)
 
 function handleSave() {
   if (!form.title.trim()) {
-    alert('Le titre de l\'issue est obligatoire.')
+    alert("Le titre de l'issue est obligatoire.")
     return
   }
-  emit('save', { 
+  emit('save', {
     title: form.title,
     description: form.description,
     type: form.type,
     priority: form.priority,
     sprintId: form.sprintId,
-    checklist: form.checklist
+    checklist: form.checklist,
   })
 }
 </script>
@@ -192,7 +191,7 @@ function handleSave() {
   border: 1px solid #e0e0e0;
 }
 
-.checklist-item input[type="checkbox"] {
+.checklist-item input[type='checkbox'] {
   width: 18px;
   height: 18px;
   cursor: pointer;

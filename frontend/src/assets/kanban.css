@@ -1,32 +1,30 @@
 .kanban-page {
-    margin-left: 220px;
-    padding: 24px;
+  margin-left: 220px;
+  padding: 24px;
 }
 
 .kanban-board {
-    display: flex;
-    gap: 20px;
+  display: flex;
+  gap: 20px;
 }
 
 .column {
-    background: #f4f4f4;
-    padding: 16px;
-    width: 30%;
-    border-radius: 8px;
+  background: #f4f4f4;
+  padding: 16px;
+  width: 30%;
+  border-radius: 8px;
 }
 
 .column h2 {
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 .task {
-    background: white;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-
-
+  background: white;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .kanban-controls {
@@ -65,7 +63,6 @@ button:active {
   font-size: 0.85rem;
 }
 
-
 .task {
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -99,10 +96,17 @@ button:active {
   color: #fff;
 }
 
-.badge.priority.low { background-color: #6c757d; }
-.badge.priority.medium { background-color: #ffc107; color: #000; }
-.badge.priority.high { background-color: #dc3545; }
+.badge.priority.low {
+  background-color: #6c757d;
+}
+.badge.priority.medium {
+  background-color: #ffc107;
+  color: #000;
+}
+.badge.priority.high {
+  background-color: #dc3545;
+}
 
-.badge.type { background-color: #17a2b8; }
-
-
+.badge.type {
+  background-color: #17a2b8;
+}

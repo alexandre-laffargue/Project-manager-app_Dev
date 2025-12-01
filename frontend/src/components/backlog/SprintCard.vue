@@ -32,7 +32,9 @@
           <span class="issue-title">{{ issue.title }}</span>
           <div class="issue-badges">
             <span class="badge type">{{ issue.type }}</span>
-            <span class="badge priority" :class="issue.priority.toLowerCase()">{{ issue.priority }}</span>
+            <span class="badge priority" :class="issue.priority.toLowerCase()">{{
+              issue.priority
+            }}</span>
           </div>
         </div>
       </div>
@@ -48,7 +50,7 @@ import { ref, computed } from 'vue'
 
 const props = defineProps({
   sprint: { type: Object, required: true },
-  allIssues: { type: Array, default: () => [] }
+  allIssues: { type: Array, default: () => [] },
 })
 
 defineEmits(['edit', 'delete'])
@@ -58,7 +60,7 @@ const showIssues = ref(false)
 const linkedIssues = computed(() => {
   if (!props.allIssues || !props.sprint._id) return []
   const sprintId = String(props.sprint._id)
-  return props.allIssues.filter(issue => {
+  return props.allIssues.filter((issue) => {
     if (!issue.sprintId) return false
     return String(issue.sprintId) === sprintId
   })

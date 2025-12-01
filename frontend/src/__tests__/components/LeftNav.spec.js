@@ -41,7 +41,7 @@ describe('LeftNav logout', () => {
 
     // find the Backlog item by text
     const items = wrapper.findAll('.nav-list .nav-item')
-    const backlog = items.find(i => i.text().includes('Backlog'))
+    const backlog = items.find((i) => i.text().includes('Backlog'))
     expect(backlog).toBeTruthy()
 
     await backlog.trigger('click')
@@ -60,7 +60,7 @@ describe('LeftNav logout', () => {
     const wrapper = mount(LeftNav)
 
     const items = wrapper.findAll('.nav-list .nav-item')
-    const chronologie = items.find(i => i.text().includes('Chronologie'))
+    const chronologie = items.find((i) => i.text().includes('Chronologie'))
     expect(chronologie).toBeTruthy()
 
     await chronologie.trigger('keydown.enter')
@@ -81,7 +81,7 @@ describe('LeftNav logout', () => {
     const wrapper = mount(LeftNav)
 
     const items = wrapper.findAll('.nav-list .nav-item')
-    const chronologie = items.find(i => i.text().includes('Chronologie'))
+    const chronologie = items.find((i) => i.text().includes('Chronologie'))
     expect(chronologie.classes()).toContain('active')
   })
 })

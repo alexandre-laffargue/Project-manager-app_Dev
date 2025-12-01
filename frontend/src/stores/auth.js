@@ -13,7 +13,8 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     loadFromStorage() {
       const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')
-      const refreshToken = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token')
+      const refreshToken =
+        localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token')
       const user = localStorage.getItem('auth_user') || sessionStorage.getItem('auth_user')
       if (token) {
         this.token = token
@@ -28,7 +29,7 @@ export const useAuthStore = defineStore('auth', {
 
     async login({ email, password, remember }) {
       if (!email || !/\S+@\S+\.\S+/.test(email)) {
-        throw new Error("Adresse e-mail invalide")
+        throw new Error('Adresse e-mail invalide')
       }
       if (!password || password.length < 8) {
         throw new Error('Mot de passe invalide (minimum 8 caractères)')
@@ -54,7 +55,7 @@ export const useAuthStore = defineStore('auth', {
 
     async register({ email, password, name, remember }) {
       if (!email || !/\S+@\S+\.\S+/.test(email)) {
-        throw new Error("Adresse e-mail invalide")
+        throw new Error('Adresse e-mail invalide')
       }
       if (!password || password.length < 6) {
         throw new Error('Le mot de passe doit contenir au moins 6 caractères')

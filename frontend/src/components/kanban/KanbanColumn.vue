@@ -41,7 +41,15 @@ import { ref } from 'vue'
 import KanbanCard from '@/components/kanban/KanbanCard.vue'
 
 const props = defineProps({ column: { type: Object, required: true } })
-const emit = defineEmits(['create-card', 'delete-card', 'update-card', 'start-drag', 'rename-column', 'delete-column', 'drop-task'])
+const emit = defineEmits([
+  'create-card',
+  'delete-card',
+  'update-card',
+  'start-drag',
+  'rename-column',
+  'delete-column',
+  'drop-task',
+])
 
 const newTitle = ref('')
 const newDescription = ref('')
@@ -84,5 +92,7 @@ function onDrop() {
 </script>
 
 <style scoped>
-.add-card { margin-bottom: 12px }
+.add-card {
+  margin-bottom: 12px;
+}
 </style>

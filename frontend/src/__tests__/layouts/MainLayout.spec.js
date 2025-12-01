@@ -16,9 +16,9 @@ describe('MainLayout', () => {
       global: {
         stubs: {
           'router-view': true,
-          LeftNav: { template: '<div class="left-nav">LeftNav</div>' }
-        }
-      }
+          LeftNav: { template: '<div class="left-nav">LeftNav</div>' },
+        },
+      },
     })
 
     expect(wrapper.find('.left-nav').exists()).toBe(true)
@@ -34,9 +34,9 @@ describe('MainLayout', () => {
       global: {
         stubs: {
           'router-view': true,
-          LeftNav: true
-        }
-      }
+          LeftNav: true,
+        },
+      },
     })
 
     expect(wrapper.find('.app-root').exists()).toBe(true)
@@ -57,8 +57,8 @@ describe('Edge cases and error handling', () => {
     vi.doMock('@/services/api', () => mockApiModule)
 
     // Board creation should trigger when no boards exist
-    await new Promise(r => setTimeout(r, 100))
-    
+    await new Promise((r) => setTimeout(r, 100))
+
     // Verify behavior handled gracefully
     expect(true).toBe(true) // placeholder for complex async test
   })
@@ -71,7 +71,7 @@ describe('Edge cases and error handling', () => {
     vi.doMock('@/services/api', () => mockApiModule)
 
     // Should not crash, should handle gracefully
-    await new Promise(r => setTimeout(r, 100))
+    await new Promise((r) => setTimeout(r, 100))
     expect(true).toBe(true)
   })
 })

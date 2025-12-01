@@ -5,11 +5,9 @@
     <div class="issue-meta">
       <span class="badge type">{{ issue.type }}</span>
       <span class="badge priority" :class="issue.priority.toLowerCase()">{{ issue.priority }}</span>
-      <span v-if="issue.sprintId" class="badge sprint">
-        Sprint assigné
-      </span>
+      <span v-if="issue.sprintId" class="badge sprint"> Sprint assigné </span>
     </div>
-    
+
     <div v-if="issue.checklist && issue.checklist.length" class="checklist-preview">
       <div class="checklist-progress">
         <span class="checklist-icon">✓</span>
@@ -31,14 +29,14 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  issue: { type: Object, required: true }
+  issue: { type: Object, required: true },
 })
 
 defineEmits(['edit', 'delete'])
 
 const completedCount = computed(() => {
   if (!props.issue.checklist) return 0
-  return props.issue.checklist.filter(item => item.checked).length
+  return props.issue.checklist.filter((item) => item.checked).length
 })
 
 const progressPercent = computed(() => {
@@ -53,12 +51,14 @@ const progressPercent = computed(() => {
   padding: 16px;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-  transition: box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
 }
 
 .issue:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
   border-color: #7b5fc0;
 }
 
@@ -185,12 +185,14 @@ const progressPercent = computed(() => {
   padding: 16px;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-  transition: box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
 }
 
 .issue:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
   border-color: #7b5fc0;
 }
 

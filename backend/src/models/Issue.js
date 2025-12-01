@@ -1,13 +1,27 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
 const issueSchema = new mongoose.Schema(
   {
-    boardId: { type: mongoose.Schema.Types.ObjectId, ref: 'Board', required: true, index: true },
-    sprintId: { type: mongoose.Schema.Types.ObjectId, ref: 'Sprint', default: null, index: true },
+    boardId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Board",
+      required: true,
+      index: true,
+    },
+    sprintId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Sprint",
+      default: null,
+      index: true,
+    },
     title: { type: String, required: true },
-    description: { type: String, default: '' },
-    type: { type: String, enum: ['Bug', 'Feature', 'Task'], default: 'Task' },
-    priority: { type: String, enum: ['Low', 'Medium', 'High'], default: 'Medium' },
+    description: { type: String, default: "" },
+    type: { type: String, enum: ["Bug", "Feature", "Task"], default: "Task" },
+    priority: {
+      type: String,
+      enum: ["Low", "Medium", "High"],
+      default: "Medium",
+    },
     position: { type: Number, default: 0 },
     startDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
@@ -15,13 +29,13 @@ const issueSchema = new mongoose.Schema(
       {
         id: { type: String, required: true },
         text: { type: String, required: true },
-        checked: { type: Boolean, default: false }
-      }
-    ]
+        checked: { type: Boolean, default: false },
+      },
+    ],
   },
-  { timestamps: true }
-)
+  { timestamps: true },
+);
 
-issueSchema.index({ boardId: 1, sprintId: 1, position: 1 })
+issueSchema.index({ boardId: 1, sprintId: 1, position: 1 });
 
-module.exports = mongoose.models.Issue || mongoose.model('Issue', issueSchema)
+module.exports = mongoose.models.Issue || mongoose.model("Issue", issueSchema);

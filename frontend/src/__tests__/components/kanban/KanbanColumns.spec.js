@@ -45,11 +45,14 @@ describe('Kanban - Columns', () => {
     await new Promise((r) => setTimeout(r, 0))
 
     // post should have been called with expected url and payload
-    expect(mockPost).toHaveBeenCalledWith(`/api/boards/${board._id}/columns`, expect.objectContaining({ title: 'New Col' }))
+    expect(mockPost).toHaveBeenCalledWith(
+      `/api/boards/${board._id}/columns`,
+      expect.objectContaining({ title: 'New Col' }),
+    )
 
     // new column title should appear and input cleared
     expect(wrapper.text()).toContain('New Col')
-    expect((wrapper.find('.kanban-controls input').element.value)).toBe('')
+    expect(wrapper.find('.kanban-controls input').element.value).toBe('')
   })
 
   it('deletes a column when confirmed', async () => {

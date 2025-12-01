@@ -1,10 +1,10 @@
 <template>
   <div class="sprints-section">
     <h2>📋 Sprints</h2>
-    
+
     <div v-if="sprints.length" class="sprints-grid">
-      <SprintCard 
-        v-for="sprint in sprints" 
+      <SprintCard
+        v-for="sprint in sprints"
         :key="sprint._id"
         :sprint="sprint"
         :all-issues="allIssues"
@@ -24,7 +24,7 @@ import SprintCard from './SprintCard.vue'
 
 defineProps({
   sprints: { type: Array, required: true },
-  allIssues: { type: Array, default: () => [] }
+  allIssues: { type: Array, default: () => [] },
 })
 
 defineEmits(['edit-sprint', 'delete-sprint'])

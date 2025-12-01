@@ -4,7 +4,9 @@
     <p class="task-desc">{{ card.description }}</p>
 
     <div class="task-meta">
-      <span class="badge priority" :class="(card.priority || 'medium').toLowerCase()">{{ card.priority || 'Medium' }}</span>
+      <span class="badge priority" :class="(card.priority || 'medium').toLowerCase()">{{
+        card.priority || 'Medium'
+      }}</span>
       <span class="badge type">{{ card.type || 'Task' }}</span>
     </div>
 
@@ -59,7 +61,7 @@ import { reactive, ref } from 'vue'
 import '@/assets/modal.css'
 
 const props = defineProps({
-  card: { type: Object, required: true }
+  card: { type: Object, required: true },
 })
 const emits = defineEmits(['update', 'delete', 'start-drag'])
 

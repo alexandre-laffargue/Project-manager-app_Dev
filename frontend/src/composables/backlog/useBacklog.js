@@ -59,7 +59,7 @@ export function useBacklog() {
         startDate: formData.startDate,
         endDate: formData.endDate,
         objective: formData.objective,
-        issues: formData.issues || []
+        issues: formData.issues || [],
       })
       sprints.push({
         _id: created._id || created.id || Date.now().toString(),
@@ -95,7 +95,7 @@ export function useBacklog() {
         startDate: formData.startDate,
         endDate: formData.endDate,
         objective: formData.objective,
-        issues: formData.issues || []
+        issues: formData.issues || [],
       })
       const sprint = sprints.find((s) => s._id === editingSprint.value._id)
       if (sprint) {
@@ -135,7 +135,7 @@ export function useBacklog() {
         priority: formData.priority,
         sprintId: formData.sprintId || null,
         checklist: formData.checklist || [],
-        boardId: currentBoardId
+        boardId: currentBoardId,
       }
       const created = await post('/api/issues', payload)
       issues.push({
@@ -152,8 +152,8 @@ export function useBacklog() {
       // Recharger pour voir les issues liées au sprint
       await loadBacklog()
     } catch (err) {
-      console.error('Erreur lors de la création de l\'issue :', err)
-      alert('Erreur lors de la création de l\'issue.')
+      console.error("Erreur lors de la création de l'issue :", err)
+      alert("Erreur lors de la création de l'issue.")
     }
   }
 
@@ -175,7 +175,7 @@ export function useBacklog() {
         type: formData.type,
         priority: formData.priority,
         sprintId: formData.sprintId || null,
-        checklist: formData.checklist || []
+        checklist: formData.checklist || [],
       })
       const issue = issues.find((i) => i._id === editingIssue.value._id)
       if (issue) {
@@ -190,8 +190,8 @@ export function useBacklog() {
       // Recharger pour voir les issues liées au sprint mises à jour
       await loadBacklog()
     } catch (err) {
-      console.error('Erreur lors de la modification de l\'issue :', err)
-      alert('Erreur lors de la modification de l\'issue.')
+      console.error("Erreur lors de la modification de l'issue :", err)
+      alert("Erreur lors de la modification de l'issue.")
     }
   }
 
@@ -202,8 +202,8 @@ export function useBacklog() {
       const index = issues.findIndex((i) => i._id === issue._id)
       if (index !== -1) issues.splice(index, 1)
     } catch (err) {
-      console.error('Erreur lors de la suppression de l\'issue :', err)
-      alert('Erreur lors de la suppression de l\'issue.')
+      console.error("Erreur lors de la suppression de l'issue :", err)
+      alert("Erreur lors de la suppression de l'issue.")
     }
   }
 

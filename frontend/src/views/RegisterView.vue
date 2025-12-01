@@ -5,25 +5,52 @@
 
       <div class="field">
         <label for="email">Adresse e-mail</label>
-        <input id="email" type="email" v-model="form.email" :class="{ invalid: errors.email }" autocomplete="username" required />
+        <input
+          id="email"
+          type="email"
+          v-model="form.email"
+          :class="{ invalid: errors.email }"
+          autocomplete="username"
+          required
+        />
         <p class="error" v-if="errors.email">{{ errors.email }}</p>
       </div>
 
       <div class="field">
         <label for="name">Nom</label>
-        <input id="name" type="text" v-model="form.name" :class="{ invalid: errors.name }" autocomplete="name" required />
+        <input
+          id="name"
+          type="text"
+          v-model="form.name"
+          :class="{ invalid: errors.name }"
+          autocomplete="name"
+          required
+        />
         <p class="error" v-if="errors.name">{{ errors.name }}</p>
       </div>
 
       <div class="field">
         <label for="password">Mot de passe</label>
-        <input id="password" type="password" v-model="form.password" :class="{ invalid: errors.password }" autocomplete="new-password" required />
+        <input
+          id="password"
+          type="password"
+          v-model="form.password"
+          :class="{ invalid: errors.password }"
+          autocomplete="new-password"
+          required
+        />
         <p class="error" v-if="errors.password">{{ errors.password }}</p>
       </div>
 
       <div class="field">
         <label for="confirm">Confirmer mot de passe</label>
-        <input id="confirm" type="password" v-model="form.confirmPassword" :class="{ invalid: errors.confirm }" required />
+        <input
+          id="confirm"
+          type="password"
+          v-model="form.confirmPassword"
+          :class="{ invalid: errors.confirm }"
+          required
+        />
         <p class="error" v-if="errors.confirm">{{ errors.confirm }}</p>
       </div>
 
@@ -86,7 +113,7 @@ function validate() {
   }
 
   if (form.password !== form.confirmPassword) {
-    errors.confirm = "Les mots de passe ne correspondent pas."
+    errors.confirm = 'Les mots de passe ne correspondent pas.'
     ok = false
   }
 
@@ -97,11 +124,11 @@ async function handleRegister() {
   if (!validate()) return
   loading.value = true
   try {
-  await auth.register({ email: form.email, password: form.password, name: form.name })
+    await auth.register({ email: form.email, password: form.password, name: form.name })
     // success
     await router.push('/login')
   } catch (err) {
-    errors.general = err.message || 'Erreur lors de l\'inscription.'
+    errors.general = err.message || "Erreur lors de l'inscription."
   } finally {
     loading.value = false
   }

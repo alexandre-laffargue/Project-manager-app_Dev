@@ -10,15 +10,13 @@ describe('Backlog - sprint creation', () => {
   it('creates a sprint when user fills the form and clicks create', async () => {
     const mockLoad = vi.fn()
 
-    const existingSprints = []
-
     const created = {
       _id: 'sprint1',
       name: 'Sprint 1',
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Objectif test',
-      issues: []
+      issues: [],
     }
 
     let sprintsAfterCreate = []
@@ -30,7 +28,7 @@ describe('Backlog - sprint creation', () => {
       return Promise.resolve([])
     })
 
-    const mockPost = vi.fn((url, data) => {
+    const mockPost = vi.fn((url) => {
       if (url === '/api/sprints') {
         sprintsAfterCreate.push(created)
         return Promise.resolve(created)
@@ -81,17 +79,20 @@ describe('Backlog - sprint creation', () => {
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 100))
 
-    expect(mockPost).toHaveBeenCalledWith('/api/sprints', expect.objectContaining({ 
-      name: 'Sprint 1', 
-      startDate: '2025-11-20', 
-      endDate: '2025-11-27', 
-      objective: 'Objectif test',
-      issues: expect.any(Array)
-    }))
+    expect(mockPost).toHaveBeenCalledWith(
+      '/api/sprints',
+      expect.objectContaining({
+        name: 'Sprint 1',
+        startDate: '2025-11-20',
+        endDate: '2025-11-27',
+        objective: 'Objectif test',
+        issues: expect.any(Array),
+      }),
+    )
 
     // new sprint should appear in the DOM after reload
     expect(wrapper.text()).toContain('Sprint 1')
-    
+
     wrapper.unmount()
   })
 
@@ -105,7 +106,7 @@ describe('Backlog - sprint creation', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Old objective',
-      issues: []
+      issues: [],
     }
 
     const sprintsData = [sprint]
@@ -119,13 +120,13 @@ describe('Backlog - sprint creation', () => {
 
     const mockPatch = vi.fn((url, data) => {
       if (url === `/api/sprints/${sprint._id}`) {
-        const updated = { 
-          ...sprint, 
+        const updated = {
+          ...sprint,
           name: data.name,
           startDate: data.startDate,
           endDate: data.endDate,
           objective: data.objective,
-          issues: data.issues || []
+          issues: data.issues || [],
         }
         sprintsData[0] = updated
         return Promise.resolve(updated)
@@ -152,7 +153,7 @@ describe('Backlog - sprint creation', () => {
     // Fill modal form
     const modal = document.querySelector('.modal-overlay')
     expect(modal).toBeTruthy()
-    
+
     const nameInput = modal.querySelector('input[placeholder="Nom du sprint"]')
     const dateInputs = modal.querySelectorAll('input[type="date"]')
     const textarea = modal.querySelector('textarea')
@@ -167,7 +168,7 @@ describe('Backlog - sprint creation', () => {
     textarea.dispatchEvent(new Event('input'))
 
     await wrapper.vm.$nextTick()
-    
+
     // Click save button
     const saveBtn = modal.querySelector('.btn-primary')
     saveBtn.click()
@@ -175,18 +176,21 @@ describe('Backlog - sprint creation', () => {
     await Promise.resolve()
     await new Promise((r) => setTimeout(r, 100))
 
-    expect(mockPatch).toHaveBeenCalledWith(`/api/sprints/${sprint._id}`, expect.objectContaining({ 
-      name: 'Sprint 1 - Updated', 
-      startDate: '2025-11-21', 
-      endDate: '2025-11-28', 
-      objective: 'Updated objective',
-      issues: expect.any(Array)
-    }))
+    expect(mockPatch).toHaveBeenCalledWith(
+      `/api/sprints/${sprint._id}`,
+      expect.objectContaining({
+        name: 'Sprint 1 - Updated',
+        startDate: '2025-11-21',
+        endDate: '2025-11-28',
+        objective: 'Updated objective',
+        issues: expect.any(Array),
+      }),
+    )
 
     // DOM updated after reload
     expect(wrapper.text()).toContain('Sprint 1 - Updated')
     expect(wrapper.text()).toContain('Updated objective')
-    
+
     wrapper.unmount()
   })
 
@@ -199,7 +203,7 @@ describe('Backlog - sprint creation', () => {
       startDate: '2025-10-10',
       endDate: '2025-10-17',
       objective: 'Keep objective',
-      issues: []
+      issues: [],
     }
 
     const mockGet = vi.fn((url) => {
@@ -268,7 +272,7 @@ describe('Backlog - sprint creation', () => {
       startDate: '2025-11-01',
       endDate: '2025-11-07',
       objective: 'To be removed',
-      issues: []
+      issues: [],
     }
 
     const mockGet = vi.fn((url) => {
@@ -290,7 +294,7 @@ describe('Backlog - sprint creation', () => {
 
     // wait for load
     await Promise.resolve()
-    await new Promise ((r) => setTimeout(r, 100))
+    await new Promise((r) => setTimeout(r, 100))
 
     // click Supprimer (third button)
     const actionBtns = wrapper.findAll('.sprint-card .sprint-actions button')

@@ -19,7 +19,7 @@ describe('API Service', () => {
       setAuthToken('my-token')
       fetchMock.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ data: 'test' })
+        json: () => Promise.resolve({ data: 'test' }),
       })
 
       await get('/api/test')
@@ -28,9 +28,9 @@ describe('API Service', () => {
         '/api/test',
         expect.objectContaining({
           headers: expect.objectContaining({
-            Authorization: 'Bearer my-token'
-          })
-        })
+            Authorization: 'Bearer my-token',
+          }),
+        }),
       )
     })
 
@@ -39,7 +39,7 @@ describe('API Service', () => {
       setAuthToken(null)
       fetchMock.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ data: 'test' })
+        json: () => Promise.resolve({ data: 'test' }),
       })
 
       await get('/api/test')
@@ -53,7 +53,7 @@ describe('API Service', () => {
     it('makes a GET request with correct parameters', async () => {
       fetchMock.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ users: [] })
+        json: () => Promise.resolve({ users: [] }),
       })
 
       const result = await get('/api/users')
@@ -63,9 +63,9 @@ describe('API Service', () => {
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
-            'Content-Type': 'application/json'
-          })
-        })
+            'Content-Type': 'application/json',
+          }),
+        }),
       )
       expect(result).toEqual({ users: [] })
     })
@@ -75,7 +75,7 @@ describe('API Service', () => {
         ok: false,
         status: 404,
         statusText: 'Not Found',
-        json: () => Promise.resolve({ error: 'User not found' })
+        json: () => Promise.resolve({ error: 'User not found' }),
       })
 
       await expect(get('/api/users/999')).rejects.toThrow('User not found')
@@ -84,7 +84,7 @@ describe('API Service', () => {
     it('handles non-JSON responses gracefully', async () => {
       fetchMock.mockResolvedValue({
         ok: true,
-        json: () => Promise.reject(new Error('Not JSON'))
+        json: () => Promise.reject(new Error('Not JSON')),
       })
 
       const result = await get('/api/health')
@@ -96,7 +96,7 @@ describe('API Service', () => {
     it('makes a POST request with JSON body', async () => {
       fetchMock.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ id: '123', name: 'Test' })
+        json: () => Promise.resolve({ id: '123', name: 'Test' }),
       })
 
       const result = await post('/api/boards', { name: 'Test' })
@@ -107,9 +107,9 @@ describe('API Service', () => {
           method: 'POST',
           body: JSON.stringify({ name: 'Test' }),
           headers: expect.objectContaining({
-            'Content-Type': 'application/json'
-          })
-        })
+            'Content-Type': 'application/json',
+          }),
+        }),
       )
       expect(result).toEqual({ id: '123', name: 'Test' })
     })
@@ -118,7 +118,7 @@ describe('API Service', () => {
       fetchMock.mockResolvedValue({
         ok: false,
         status: 400,
-        json: () => Promise.resolve({ error: 'Invalid name', message: 'Name is required' })
+        json: () => Promise.resolve({ error: 'Invalid name', message: 'Name is required' }),
       })
 
       await expect(post('/api/boards', {})).rejects.toThrow('Invalid name')
@@ -129,7 +129,7 @@ describe('API Service', () => {
     it('makes a PATCH request with partial body', async () => {
       fetchMock.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ id: '123', title: 'Updated' })
+        json: () => Promise.resolve({ id: '123', title: 'Updated' }),
       })
 
       const result = await patch('/api/cards/123', { title: 'Updated' })
@@ -138,8 +138,8 @@ describe('API Service', () => {
         '/api/cards/123',
         expect.objectContaining({
           method: 'PATCH',
-          body: JSON.stringify({ title: 'Updated' })
-        })
+          body: JSON.stringify({ title: 'Updated' }),
+        }),
       )
       expect(result).toEqual({ id: '123', title: 'Updated' })
     })
@@ -149,7 +149,7 @@ describe('API Service', () => {
     it('makes a DELETE request', async () => {
       fetchMock.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve(null)
+        json: () => Promise.resolve(null),
       })
 
       const result = await del('/api/cards/123')
@@ -157,8 +157,8 @@ describe('API Service', () => {
       expect(fetchMock).toHaveBeenCalledWith(
         '/api/cards/123',
         expect.objectContaining({
-          method: 'DELETE'
-        })
+          method: 'DELETE',
+        }),
       )
       expect(result).toBeNull()
     })
@@ -167,7 +167,7 @@ describe('API Service', () => {
       fetchMock.mockResolvedValue({
         ok: true,
         status: 204,
-        json: () => Promise.reject(new Error('No content'))
+        json: () => Promise.reject(new Error('No content')),
       })
 
       const result = await del('/api/cards/123')
@@ -181,7 +181,7 @@ describe('API Service', () => {
         ok: false,
         status: 403,
         statusText: 'Forbidden',
-        json: () => Promise.resolve({ error: 'Access denied' })
+        json: () => Promise.resolve({ error: 'Access denied' }),
       })
 
       try {
@@ -197,7 +197,7 @@ describe('API Service', () => {
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
-        json: () => Promise.resolve({})
+        json: () => Promise.resolve({}),
       })
 
       await expect(get('/api/error')).rejects.toThrow('Internal Server Error')
@@ -208,7 +208,7 @@ describe('API Service', () => {
         ok: false,
         status: 500,
         statusText: '',
-        json: () => Promise.resolve(null)
+        json: () => Promise.resolve(null),
       })
 
       await expect(get('/api/error')).rejects.toThrow('Request failed')

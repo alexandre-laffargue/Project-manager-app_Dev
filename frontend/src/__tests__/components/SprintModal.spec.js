@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import SprintModal from '../../components/backlog/SprintModal.vue'
 
 describe('SprintModal', () => {
@@ -7,14 +7,14 @@ describe('SprintModal', () => {
     const wrapper = mount(SprintModal, {
       props: {
         show: true,
-        availableIssues: []
+        availableIssues: [],
       },
-      attachTo: document.body
+      attachTo: document.body,
     })
 
     expect(wrapper.props('show')).toBe(true)
     expect(wrapper.props('availableIssues')).toEqual([])
-    
+
     wrapper.unmount()
   })
 
@@ -25,20 +25,20 @@ describe('SprintModal', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test objective',
-      issues: ['issue1', 'issue2']
+      issues: ['issue1', 'issue2'],
     }
 
     const wrapper = mount(SprintModal, {
       props: {
         show: true,
         sprint,
-        availableIssues: []
+        availableIssues: [],
       },
-      attachTo: document.body
+      attachTo: document.body,
     })
 
     expect(wrapper.props('sprint')).toEqual(sprint)
-    
+
     wrapper.unmount()
   })
 
@@ -46,9 +46,9 @@ describe('SprintModal', () => {
     const wrapper = mount(SprintModal, {
       props: {
         show: true,
-        availableIssues: []
+        availableIssues: [],
       },
-      attachTo: document.body
+      attachTo: document.body,
     })
 
     await wrapper.vm.$emit('close')
@@ -61,9 +61,9 @@ describe('SprintModal', () => {
     const wrapper = mount(SprintModal, {
       props: {
         show: true,
-        availableIssues: []
+        availableIssues: [],
       },
-      attachTo: document.body
+      attachTo: document.body,
     })
 
     const saveData = {
@@ -71,7 +71,7 @@ describe('SprintModal', () => {
       startDate: '2025-12-01',
       endDate: '2025-12-15',
       objective: 'Test',
-      issues: []
+      issues: [],
     }
 
     await wrapper.vm.$emit('save', saveData)

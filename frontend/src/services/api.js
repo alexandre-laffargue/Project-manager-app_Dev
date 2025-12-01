@@ -14,7 +14,7 @@ export function setRefreshToken(token) {
 }
 
 function onRefreshed(newToken) {
-  refreshSubscribers.forEach(callback => callback(newToken))
+  refreshSubscribers.forEach((callback) => callback(newToken))
   refreshSubscribers = []
 }
 
@@ -24,15 +24,15 @@ function addRefreshSubscriber(callback) {
 
 async function refreshAccessToken() {
   if (!refreshToken) throw new Error('No refresh token')
-  
+
   const resp = await fetch(API_BASE + '/api/auth/refresh', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken })
+    body: JSON.stringify({ refreshToken }),
   })
 
   if (!resp.ok) throw new Error('Refresh failed')
-  
+
   const data = await resp.json()
   return data.token
 }
@@ -42,7 +42,7 @@ async function request(path, opts = {}) {
   if (authToken) headers['Authorization'] = `Bearer ${authToken}`
 
   const resp = await fetch(API_BASE + path, Object.assign({}, opts, { headers }))
-  
+
   // Gestion du token expiré
   if (resp.status === 401 && authToken && refreshToken && !path.includes('/auth/')) {
     if (!isRefreshing) {
@@ -51,14 +51,14 @@ async function request(path, opts = {}) {
         const newToken = await refreshAccessToken()
         authToken = newToken
         setAuthToken(newToken)
-        
+
         // Stocker le nouveau token
         const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage
         storage.setItem('auth_token', newToken)
-        
+
         isRefreshing = false
         onRefreshed(newToken)
-        
+
         // Réessayer la requête originale
         return request(path, opts)
       } catch (err) {
@@ -94,7 +94,8 @@ async function request(path, opts = {}) {
   }
 
   if (!resp.ok) {
-    const message = (payload && (payload.error || payload.message)) || resp.statusText || 'Request failed'
+    const message =
+      (payload && (payload.error || payload.message)) || resp.statusText || 'Request failed'
     const err = new Error(message)
     err.status = resp.status
     err.payload = payload

@@ -17,18 +17,14 @@
     </div>
 
     <div v-else>
-      <SprintList 
+      <SprintList
         :sprints="sprints"
         :all-issues="issues"
         @edit-sprint="openEditSprintModal"
         @delete-sprint="deleteSprint"
       />
 
-      <IssueList 
-        :issues="issues"
-        @edit-issue="openEditIssueModal"
-        @delete-issue="deleteIssue"
-      />
+      <IssueList :issues="issues" @edit-issue="openEditIssueModal" @delete-issue="deleteIssue" />
     </div>
 
     <!-- Modal de création de sprint -->

@@ -51,7 +51,11 @@ describe('RegisterView', () => {
     await Promise.resolve()
     await Promise.resolve()
 
-    expect(mockRegister).toHaveBeenCalledWith({ email: 'newuser@example.com', password: 'password123', name: 'New User' })
+    expect(mockRegister).toHaveBeenCalledWith({
+      email: 'newuser@example.com',
+      password: 'password123',
+      name: 'New User',
+    })
     expect(mockPush).toHaveBeenCalledWith('/login')
   })
 
@@ -120,7 +124,7 @@ describe('RegisterView', () => {
 
     await wrapper.find('form').trigger('submit.prevent')
 
-    expect(wrapper.text()).toContain("Les mots de passe ne correspondent pas.")
+    expect(wrapper.text()).toContain('Les mots de passe ne correspondent pas.')
     expect(mockRegister).not.toHaveBeenCalled()
   })
 })

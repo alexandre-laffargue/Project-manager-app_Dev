@@ -23,10 +23,10 @@ describe('Route -> View mapping', () => {
       { path: '/register', component: { template: '<div>Register</div>' } },
     ]
 
-  router = createRouter({ history: createMemoryHistory(), routes })
-  const pinia = createPinia()
-  wrapper = mount(App, { global: { plugins: [router, pinia] } })
-  await router.isReady()
+    router = createRouter({ history: createMemoryHistory(), routes })
+    const pinia = createPinia()
+    wrapper = mount(App, { global: { plugins: [router, pinia] } })
+    await router.isReady()
   })
 
   afterEach(() => {

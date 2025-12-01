@@ -24,7 +24,8 @@ describe('useKanbanBoard composable', () => {
 
   it('creates a board when none exists', async () => {
     const board = { _id: 'board1', name: 'Mon tableau' }
-    const mockGet = vi.fn()
+    const mockGet = vi
+      .fn()
       .mockResolvedValueOnce([]) // no boards
       .mockResolvedValueOnce([]) // columns
       .mockResolvedValueOnce([]) // cards
@@ -93,7 +94,7 @@ describe('useKanbanBoard composable', () => {
     expect(mockPost).toHaveBeenCalledWith('/api/boards/board1/columns', {
       key: 'new-col',
       title: 'New Col',
-      order: 0
+      order: 0,
     })
     expect(columns.length).toBe(1)
     expect(columns[0].title).toBe('New Col')
@@ -124,7 +125,10 @@ describe('useKanbanBoard composable', () => {
     const column = columns[0]
     await handleCreateCard(column, { title: 'New Task', columnId: 'col1' })
 
-    expect(mockPost).toHaveBeenCalledWith('/api/boards/board1/cards', { title: 'New Task', columnId: 'col1' })
+    expect(mockPost).toHaveBeenCalledWith('/api/boards/board1/cards', {
+      title: 'New Task',
+      columnId: 'col1',
+    })
     expect(column.tasks.length).toBe(1)
     expect(column.tasks[0].title).toBe('New Task')
   })
@@ -132,8 +136,17 @@ describe('useKanbanBoard composable', () => {
   it('handleUpdateCard updates a card in state', async () => {
     const board = { _id: 'board1', name: 'My Board' }
     const cols = [{ _id: 'col1', title: 'To Do' }]
-    const cards = [{ _id: 'card1', title: 'Old Title', columnId: 'col1', priority: 'Medium', type: 'Task' }]
-    const updatedCard = { _id: 'card1', title: 'New Title', columnId: 'col1', priority: 'High', type: 'Bug', description: 'Updated' }
+    const cards = [
+      { _id: 'card1', title: 'Old Title', columnId: 'col1', priority: 'Medium', type: 'Task' },
+    ]
+    const updatedCard = {
+      _id: 'card1',
+      title: 'New Title',
+      columnId: 'col1',
+      priority: 'High',
+      type: 'Bug',
+      description: 'Updated',
+    }
 
     const mockGet = vi.fn((url) => {
       if (url === '/api/boards/me') return Promise.resolve([board])
@@ -153,9 +166,19 @@ describe('useKanbanBoard composable', () => {
 
     const column = columns[0]
     const card = column.tasks[0]
-    await handleUpdateCard(column, card, { title: 'New Title', priority: 'High', type: 'Bug', description: 'Updated' })
+    await handleUpdateCard(column, card, {
+      title: 'New Title',
+      priority: 'High',
+      type: 'Bug',
+      description: 'Updated',
+    })
 
-    expect(mockPatch).toHaveBeenCalledWith('/api/cards/card1', { title: 'New Title', priority: 'High', type: 'Bug', description: 'Updated' })
+    expect(mockPatch).toHaveBeenCalledWith('/api/cards/card1', {
+      title: 'New Title',
+      priority: 'High',
+      type: 'Bug',
+      description: 'Updated',
+    })
     expect(card.title).toBe('New Title')
     expect(card.priority).toBe('High')
     expect(card.type).toBe('Bug')
@@ -164,7 +187,10 @@ describe('useKanbanBoard composable', () => {
 
   it('dropTask moves a card between columns', async () => {
     const board = { _id: 'board1', name: 'My Board' }
-    const cols = [{ _id: 'col1', title: 'To Do' }, { _id: 'col2', title: 'Done' }]
+    const cols = [
+      { _id: 'col1', title: 'To Do' },
+      { _id: 'col2', title: 'Done' },
+    ]
     const cards = [{ _id: 'card1', title: 'Task', columnId: 'col1' }]
 
     const mockGet = vi.fn((url) => {

@@ -20,26 +20,20 @@
             Objectif :
             <textarea v-model="form.objective" placeholder="Objectif du sprint" rows="4"></textarea>
           </label>
-          
+
           <div class="issues-section">
             <h3>Issues du sprint</h3>
             <p class="help-text">Sélectionnez les issues à inclure dans ce sprint :</p>
             <div v-if="availableIssues.length" class="issues-list">
-              <label 
-                v-for="issue in availableIssues" 
-                :key="issue._id"
-                class="issue-checkbox"
-              >
-                <input 
-                  type="checkbox" 
-                  :value="issue._id"
-                  v-model="selectedIssueIds"
-                />
+              <label v-for="issue in availableIssues" :key="issue._id" class="issue-checkbox">
+                <input type="checkbox" :value="issue._id" v-model="selectedIssueIds" />
                 <span class="issue-info">
                   <strong>{{ issue.title }}</strong>
                   <span class="issue-meta">
                     <span class="badge type">{{ issue.type }}</span>
-                    <span class="badge priority" :class="issue.priority.toLowerCase()">{{ issue.priority }}</span>
+                    <span class="badge priority" :class="issue.priority.toLowerCase()">{{
+                      issue.priority
+                    }}</span>
                   </span>
                 </span>
               </label>
@@ -64,7 +58,7 @@ const props = defineProps({
   sprint: { type: Object, default: null },
   availableIssues: { type: Array, default: () => [] },
   title: { type: String, default: 'Créer un sprint' },
-  saveButtonText: { type: String, default: 'Créer' }
+  saveButtonText: { type: String, default: 'Créer' },
 })
 
 const emit = defineEmits(['close', 'save'])
@@ -86,33 +80,40 @@ function resetForm() {
   selectedIssueIds.value = []
 }
 
-watch(() => props.sprint, (newSprint) => {
-  if (newSprint) {
-    form.name = newSprint.name
-    form.startDate = newSprint.startDate ? newSprint.startDate.split('T')[0] : ''
-    form.endDate = newSprint.endDate ? newSprint.endDate.split('T')[0] : ''
-    form.objective = newSprint.objective || ''
-    selectedIssueIds.value = newSprint.issues ? newSprint.issues.map(i => i._id || i) : []
-  } else {
-    resetForm()
-  }
-}, { immediate: true })
+watch(
+  () => props.sprint,
+  (newSprint) => {
+    if (newSprint) {
+      form.name = newSprint.name
+      form.startDate = newSprint.startDate ? newSprint.startDate.split('T')[0] : ''
+      form.endDate = newSprint.endDate ? newSprint.endDate.split('T')[0] : ''
+      form.objective = newSprint.objective || ''
+      selectedIssueIds.value = newSprint.issues ? newSprint.issues.map((i) => i._id || i) : []
+    } else {
+      resetForm()
+    }
+  },
+  { immediate: true },
+)
 
-watch(() => props.show, (newShow, oldShow) => {
-  // Réinitialiser le formulaire quand le modal se ferme (après création)
-  if (oldShow && !newShow && !props.sprint) {
-    resetForm()
-  }
-})
+watch(
+  () => props.show,
+  (newShow, oldShow) => {
+    // Réinitialiser le formulaire quand le modal se ferme (après création)
+    if (oldShow && !newShow && !props.sprint) {
+      resetForm()
+    }
+  },
+)
 
 function handleSave() {
   if (!form.name.trim()) {
     alert('Le nom du sprint est obligatoire.')
     return
   }
-  emit('save', { 
+  emit('save', {
     ...form,
-    issues: selectedIssueIds.value 
+    issues: selectedIssueIds.value,
   })
 }
 </script>
@@ -171,7 +172,7 @@ function handleSave() {
   box-shadow: 0 2px 4px rgba(123, 95, 192, 0.1);
 }
 
-.issue-checkbox input[type="checkbox"] {
+.issue-checkbox input[type='checkbox'] {
   cursor: pointer;
   width: 18px;
   height: 18px;

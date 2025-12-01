@@ -10,11 +10,11 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Complete features',
-      issues: []
+      issues: [],
     }
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues: [] }
+      props: { sprint, allIssues: [] },
     })
 
     expect(wrapper.text()).toContain('Sprint 1')
@@ -30,17 +30,17 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: ['issue1', 'issue2', 'issue3']
+      issues: ['issue1', 'issue2', 'issue3'],
     }
 
     const allIssues = [
       { _id: 'issue1', title: 'Issue 1', sprintId: 'sprint1' },
       { _id: 'issue2', title: 'Issue 2', sprintId: 'sprint1' },
-      { _id: 'issue3', title: 'Issue 3', sprintId: 'sprint1' }
+      { _id: 'issue3', title: 'Issue 3', sprintId: 'sprint1' },
     ]
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues }
+      props: { sprint, allIssues },
     })
 
     expect(wrapper.text()).toContain('3 issues')
@@ -55,15 +55,13 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: ['issue1']
+      issues: ['issue1'],
     }
 
-    const allIssues = [
-      { _id: 'issue1', title: 'Issue 1', sprintId: 'sprint1' }
-    ]
+    const allIssues = [{ _id: 'issue1', title: 'Issue 1', sprintId: 'sprint1' }]
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues }
+      props: { sprint, allIssues },
     })
 
     // Should show 1 issue in the badge
@@ -79,15 +77,15 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: ['issue1']
+      issues: ['issue1'],
     }
 
     const allIssues = [
-      { _id: 'issue1', title: 'Test Issue', type: 'Task', priority: 'High', sprintId: 'sprint1' }
+      { _id: 'issue1', title: 'Test Issue', type: 'Task', priority: 'High', sprintId: 'sprint1' },
     ]
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues }
+      props: { sprint, allIssues },
     })
 
     // Initially hidden
@@ -112,17 +110,29 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: ['issue1', 'issue2']
+      issues: ['issue1', 'issue2'],
     }
 
     const allIssues = [
       { _id: 'issue1', title: 'First Issue', type: 'Task', priority: 'High', sprintId: 'sprint1' },
-      { _id: 'issue2', title: 'Second Issue', type: 'Bug', priority: 'Medium', sprintId: 'sprint1' },
-      { _id: 'issue3', title: 'Other Issue', type: 'Feature', priority: 'Low', sprintId: 'sprint2' }
+      {
+        _id: 'issue2',
+        title: 'Second Issue',
+        type: 'Bug',
+        priority: 'Medium',
+        sprintId: 'sprint1',
+      },
+      {
+        _id: 'issue3',
+        title: 'Other Issue',
+        type: 'Feature',
+        priority: 'Low',
+        sprintId: 'sprint2',
+      },
     ]
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues }
+      props: { sprint, allIssues },
     })
 
     // Expand accordion
@@ -145,11 +155,11 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: []
+      issues: [],
     }
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues: [] }
+      props: { sprint, allIssues: [] },
     })
 
     // Expand accordion
@@ -169,11 +179,11 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: []
+      issues: [],
     }
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues: [] }
+      props: { sprint, allIssues: [] },
     })
 
     const editBtn = wrapper.find('.btn-edit')
@@ -192,11 +202,11 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: []
+      issues: [],
     }
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues: [] }
+      props: { sprint, allIssues: [] },
     })
 
     const deleteBtn = wrapper.find('.btn-delete')
@@ -215,11 +225,11 @@ describe('SprintCard', () => {
       startDate: '2025-12-01',
       endDate: '2025-12-15',
       objective: 'Test',
-      issues: []
+      issues: [],
     }
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues: [] }
+      props: { sprint, allIssues: [] },
     })
 
     // Should display formatted dates
@@ -236,11 +246,11 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: '',
-      issues: []
+      issues: [],
     }
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues: [] }
+      props: { sprint, allIssues: [] },
     })
 
     expect(wrapper.text()).toContain('Aucun objectif défini')
@@ -255,15 +265,15 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: []
+      issues: [],
     }
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues: [] }
+      props: { sprint, allIssues: [] },
     })
 
     const viewBtn = wrapper.find('.btn-view-issues')
-    
+
     // Initially shows "Voir"
     expect(viewBtn.text()).toContain('Voir')
 
@@ -284,18 +294,18 @@ describe('SprintCard', () => {
       startDate: '2025-11-20',
       endDate: '2025-11-27',
       objective: 'Test',
-      issues: ['issue1', 'issue2']
+      issues: ['issue1', 'issue2'],
     }
 
     const allIssues = [
       { _id: 'issue1', title: 'Linked 1', type: 'Task', priority: 'High', sprintId: 'sprint1' },
       { _id: 'issue2', title: 'Linked 2', type: 'Bug', priority: 'Medium', sprintId: 'sprint1' },
       { _id: 'issue3', title: 'Not Linked', type: 'Feature', priority: 'Low', sprintId: null },
-      { _id: 'issue4', title: 'Other Sprint', type: 'Task', priority: 'High', sprintId: 'sprint2' }
+      { _id: 'issue4', title: 'Other Sprint', type: 'Task', priority: 'High', sprintId: 'sprint2' },
     ]
 
     const wrapper = mount(SprintCard, {
-      props: { sprint, allIssues }
+      props: { sprint, allIssues },
     })
 
     // Expand accordion
@@ -304,7 +314,7 @@ describe('SprintCard', () => {
     await wrapper.vm.$nextTick()
 
     const issuesSection = wrapper.find('.sprint-issues')
-    
+
     // Should only show issues with matching sprintId
     expect(issuesSection.text()).toContain('Linked 1')
     expect(issuesSection.text()).toContain('Linked 2')

@@ -10,15 +10,15 @@ describe('Auth Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     store = useAuthStore()
-    
+
     // Clear storage
     localStorage.clear()
     sessionStorage.clear()
-    
+
     // Mock fetch globally
     fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
-    
+
     // Mock API
     vi.spyOn(api, 'setAuthToken')
   })
@@ -78,30 +78,33 @@ describe('Auth Store', () => {
     it('successfully logs in with valid credentials', async () => {
       const mockResponse = {
         token: 'jwt-token',
-        user: { id: '1', email: 'test@example.com', name: 'Test User' }
+        user: { id: '1', email: 'test@example.com', name: 'Test User' },
       }
-      
+
       fetchMock.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockResponse
+        json: async () => mockResponse,
       })
 
       const result = await store.login({
         email: 'test@example.com',
         password: 'password123',
-        remember: false
+        remember: false,
       })
 
-      expect(fetchMock).toHaveBeenCalledWith('/api/auth/login', expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          'Content-Type': 'application/json'
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/auth/login',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+          }),
+          body: JSON.stringify({
+            email: 'test@example.com',
+            password: 'password123',
+          }),
         }),
-        body: JSON.stringify({
-          email: 'test@example.com',
-          password: 'password123'
-        })
-      }))
+      )
       expect(store.token).toBe('jwt-token')
       expect(store.user).toEqual(mockResponse.user)
       expect(result).toEqual(mockResponse)
@@ -112,18 +115,22 @@ describe('Auth Store', () => {
         ok: true,
         json: async () => ({
           token: 'jwt-token',
-          user: { id: '1', email: 'test@example.com', name: 'Test' }
-        })
+          user: { id: '1', email: 'test@example.com', name: 'Test' },
+        }),
       })
 
       await store.login({
         email: 'test@example.com',
         password: 'password123',
-        remember: true
+        remember: true,
       })
 
       expect(localStorage.getItem('auth_token')).toBe('jwt-token')
-      expect(JSON.parse(localStorage.getItem('auth_user'))).toEqual({ id: '1', email: 'test@example.com', name: 'Test' })
+      expect(JSON.parse(localStorage.getItem('auth_user'))).toEqual({
+        id: '1',
+        email: 'test@example.com',
+        name: 'Test',
+      })
       expect(sessionStorage.getItem('auth_token')).toBeNull()
     })
 
@@ -132,14 +139,14 @@ describe('Auth Store', () => {
         ok: true,
         json: async () => ({
           token: 'jwt-token',
-          user: { id: '1', email: 'test@example.com', name: 'Test' }
-        })
+          user: { id: '1', email: 'test@example.com', name: 'Test' },
+        }),
       })
 
       await store.login({
         email: 'test@example.com',
         password: 'password123',
-        remember: false
+        remember: false,
       })
 
       expect(sessionStorage.getItem('auth_token')).toBe('jwt-token')
@@ -148,13 +155,13 @@ describe('Auth Store', () => {
 
     it('rejects invalid email format', async () => {
       await expect(
-        store.login({ email: 'invalid-email', password: 'password123', remember: false })
+        store.login({ email: 'invalid-email', password: 'password123', remember: false }),
       ).rejects.toThrow('Adresse e-mail invalide')
     })
 
     it('rejects password shorter than 8 characters', async () => {
       await expect(
-        store.login({ email: 'test@example.com', password: 'short', remember: false })
+        store.login({ email: 'test@example.com', password: 'short', remember: false }),
       ).rejects.toThrow('Mot de passe invalide (minimum 8 caractères)')
     })
 
@@ -163,11 +170,11 @@ describe('Auth Store', () => {
         ok: false,
         status: 401,
         statusText: 'Unauthorized',
-        json: async () => ({ error: 'Invalid credentials' })
+        json: async () => ({ error: 'Invalid credentials' }),
       })
 
       await expect(
-        store.login({ email: 'test@example.com', password: 'password123', remember: false })
+        store.login({ email: 'test@example.com', password: 'password123', remember: false }),
       ).rejects.toThrow('Invalid credentials')
     })
   })
@@ -176,32 +183,35 @@ describe('Auth Store', () => {
     it('successfully registers with valid data', async () => {
       const mockResponse = {
         token: 'new-jwt-token',
-        user: { id: '2', email: 'new@example.com', name: 'New User' }
+        user: { id: '2', email: 'new@example.com', name: 'New User' },
       }
-      
+
       fetchMock.mockResolvedValueOnce({
         ok: true,
-        json: async () => mockResponse
+        json: async () => mockResponse,
       })
 
       const result = await store.register({
         email: 'new@example.com',
         password: 'password123',
         name: 'New User',
-        remember: false
+        remember: false,
       })
 
-      expect(fetchMock).toHaveBeenCalledWith('/api/auth/register', expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          'Content-Type': 'application/json'
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/auth/register',
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+          }),
+          body: JSON.stringify({
+            email: 'new@example.com',
+            password: 'password123',
+            name: 'New User',
+          }),
         }),
-        body: JSON.stringify({
-          email: 'new@example.com',
-          password: 'password123',
-          name: 'New User'
-        })
-      }))
+      )
       expect(store.token).toBe('new-jwt-token')
       expect(store.user).toEqual(mockResponse.user)
       expect(result).toEqual(mockResponse)
@@ -209,19 +219,34 @@ describe('Auth Store', () => {
 
     it('rejects invalid email', async () => {
       await expect(
-        store.register({ email: 'bad-email', password: 'password123', name: 'User', remember: false })
+        store.register({
+          email: 'bad-email',
+          password: 'password123',
+          name: 'User',
+          remember: false,
+        }),
       ).rejects.toThrow('Adresse e-mail invalide')
     })
 
     it('rejects password shorter than 6 characters', async () => {
       await expect(
-        store.register({ email: 'test@example.com', password: 'short', name: 'User', remember: false })
+        store.register({
+          email: 'test@example.com',
+          password: 'short',
+          name: 'User',
+          remember: false,
+        }),
       ).rejects.toThrow('Le mot de passe doit contenir au moins 6 caractères')
     })
 
     it('rejects name shorter than 2 characters', async () => {
       await expect(
-        store.register({ email: 'test@example.com', password: 'password123', name: 'A', remember: false })
+        store.register({
+          email: 'test@example.com',
+          password: 'password123',
+          name: 'A',
+          remember: false,
+        }),
       ).rejects.toThrow('Nom invalide')
     })
 
@@ -230,15 +255,15 @@ describe('Auth Store', () => {
         ok: true,
         json: async () => ({
           token: 'reg-token',
-          user: { id: '3', email: 'reg@example.com', name: 'Registered' }
-        })
+          user: { id: '3', email: 'reg@example.com', name: 'Registered' },
+        }),
       })
 
       await store.register({
         email: 'reg@example.com',
         password: 'password123',
         name: 'Registered',
-        remember: true
+        remember: true,
       })
 
       expect(localStorage.getItem('auth_token')).toBe('reg-token')

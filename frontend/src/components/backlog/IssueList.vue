@@ -3,8 +3,8 @@
     <h2>📋 Issues du backlog</h2>
 
     <div v-if="issues.length" class="issues-list">
-      <IssueCard 
-        v-for="issue in issues" 
+      <IssueCard
+        v-for="issue in issues"
         :key="issue._id"
         :issue="issue"
         @edit="$emit('edit-issue', $event)"
@@ -22,7 +22,7 @@
 import IssueCard from './IssueCard.vue'
 
 defineProps({
-  issues: { type: Array, required: true }
+  issues: { type: Array, required: true },
 })
 
 defineEmits(['edit-issue', 'delete-issue'])
