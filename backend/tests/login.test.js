@@ -32,7 +32,15 @@ describe('POST /api/auth/login', () => {
 
   it('should login successfully with correct credentials', async () => {
       // Call the controller directly with mocked model & bcrypt to avoid express/middleware module-hoisting issues
-      const fakeUser = { _id: '507f191e810c19729de860ea', email: 'user@example.com', name: 'User', passwordHash: 'hash', roles: ['user'] }
+      const fakeUser = { 
+        _id: '507f191e810c19729de860ea', 
+        email: 'user@example.com', 
+        name: 'User', 
+        passwordHash: 'hash', 
+        roles: ['user'],
+        refreshToken: null,
+        save: vi.fn().mockResolvedValue(true)
+      }
       mockFindOne.mockResolvedValue(fakeUser)
       mockCompare.mockResolvedValue(true)
 

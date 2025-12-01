@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
 
 const mockFindOne = vi.fn()
 const mockVerifyJwt = vi.fn()
+const mockSignJwt = vi.fn()
 
 let app
 
@@ -14,17 +15,12 @@ beforeAll(async () => {
   
   // Patch User model
   const UserModel = req('../src/models/User.js')
-  UserModel.findOne = (...args) => mockFindOne(...args)
+  UserModel.findOne = mockFindOne
 
   // Patch jwt utils
   const jwtUtils = req('../src/utils/jwt.js')
-  const originalVerify = jwtUtils.verifyJwt
-  jwtUtils.verifyJwt = (...args) => {
-    if (mockVerifyJwt.mock.calls.length > 0) {
-      return mockVerifyJwt(...args)
-    }
-    return originalVerify(...args)
-  }
+  jwtUtils.verifyJwt = mockVerifyJwt
+  jwtUtils.signJwt = mockSignJwt
 
   app = req('../src/app.js')
 })
@@ -33,6 +29,7 @@ describe('POST /api/auth/refresh', () => {
   beforeEach(() => {
     mockFindOne.mockReset()
     mockVerifyJwt.mockReset()
+    mockSignJwt.mockReset()
   })
 
   it('should return a new access token with valid refresh token', async () => {
@@ -47,6 +44,7 @@ describe('POST /api/auth/refresh', () => {
     
     mockVerifyJwt.mockReturnValue({ sub: fakeUser.email })
     mockFindOne.mockResolvedValue(fakeUser)
+    mockSignJwt.mockReturnValue('new-access-token')
 
     const res = await request(app)
       .post('/api/auth/refresh')
@@ -54,7 +52,7 @@ describe('POST /api/auth/refresh', () => {
 
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty('token')
-    expect(typeof res.body.token).toBe('string')
+    expect(res.body.token).toBe('new-access-token')
   })
 
   it('should return 401 when refresh token is missing', async () => {
@@ -83,7 +81,7 @@ describe('POST /api/auth/refresh', () => {
     const refreshToken = 'valid-but-not-in-db'
     
     mockVerifyJwt.mockReturnValue({ sub: 'user@example.com' })
-    mockFindOne.mockResolvedValue(null) // User not found or token doesn't match
+    mockFindOne.mockResolvedValue(null)
 
     const res = await request(app)
       .post('/api/auth/refresh')
@@ -102,7 +100,7 @@ describe('POST /api/auth/refresh', () => {
     }
     
     mockVerifyJwt.mockReturnValue({ sub: fakeUser.email })
-    mockFindOne.mockResolvedValue(null) // findOne with email AND refreshToken returns null
+    mockFindOne.mockResolvedValue(null)
 
     const res = await request(app)
       .post('/api/auth/refresh')
