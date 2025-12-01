@@ -1,6 +1,7 @@
 const Joi = require('joi')
 const Issue = require('../models/Issue')
 const Board = require('../models/Board')
+const Sprint = require('../models/Sprint')
 const { reorderIssues } = require('../utils/issue')
 
 const createSchema = Joi.object({
@@ -10,7 +11,14 @@ const createSchema = Joi.object({
   type: Joi.string().valid('Bug', 'Feature', 'Task').default('Task'),
   priority: Joi.string().valid('Low', 'Medium', 'High').default('Medium'),
   position: Joi.number().integer().min(0).default(0),
-  sprintId: Joi.string().allow(null)
+  sprintId: Joi.string().allow(null),
+  checklist: Joi.array().items(
+    Joi.object({
+      id: Joi.string().required(),
+      text: Joi.string().required(),
+      checked: Joi.boolean().default(false)
+    })
+  ).default([])
 })
 
 async function createIssue (req, res, next) {
@@ -25,6 +33,15 @@ async function createIssue (req, res, next) {
     else q.sprintId = null
     const count = await Issue.countDocuments(q)
     const issue = await Issue.create({ ...payload, position: payload.position || count })
+    
+    // Ajouter l'issue au sprint si sprintId est fourni
+    if (payload.sprintId) {
+      await Sprint.findByIdAndUpdate(
+        payload.sprintId,
+        { $addToSet: { issues: issue._id } }
+      )
+    }
+    
     res.status(201).json(issue)
   } catch (err) { if (err.isJoi) err.status = 400; next(err) }
 }
@@ -98,4 +115,88 @@ async function patchDates (req, res, next) {
   } catch (err) { if (err.isJoi) err.status = 400; next(err) }
 }
 
-module.exports = { createIssue, getIssues, patchReorder, patchMoveToSprint, patchDates }
+const updateSchema = Joi.object({
+  title: Joi.string().min(1),
+  description: Joi.string().allow(''),
+  type: Joi.string().valid('Bug', 'Feature', 'Task'),
+  priority: Joi.string().valid('Low', 'Medium', 'High'),
+  sprintId: Joi.string().allow(null),
+  checklist: Joi.array().items(
+    Joi.object({
+      id: Joi.string().required(),
+      text: Joi.string().required(),
+      checked: Joi.boolean().default(false)
+    })
+  )
+})
+
+async function updateIssue (req, res, next) {
+  try {
+    const payload = await updateSchema.validateAsync(req.body)
+    const issue = await Issue.findById(req.params.id)
+    if (!issue) return res.status(404).json({ error: 'Issue not found' })
+
+    // verify board ownership
+    const board = await Board.findOne({ _id: issue.boardId, ownerId: req.user.sub })
+    if (!board) return res.status(403).json({ error: 'Forbidden' })
+
+    // Gérer le changement de sprint
+    if (payload.sprintId !== undefined) {
+      const oldSprintId = issue.sprintId ? issue.sprintId.toString() : null
+      const newSprintId = payload.sprintId || null
+      
+      // Si le sprint change
+      if (oldSprintId !== newSprintId) {
+        // Retirer l'issue de l'ancien sprint
+        if (oldSprintId) {
+          await Sprint.findByIdAndUpdate(
+            oldSprintId,
+            { $pull: { issues: issue._id } }
+          )
+        }
+        
+        // Ajouter l'issue au nouveau sprint
+        if (newSprintId) {
+          await Sprint.findByIdAndUpdate(
+            newSprintId,
+            { $addToSet: { issues: issue._id } }
+          )
+        }
+      }
+    }
+
+    if (payload.title !== undefined) issue.title = payload.title
+    if (payload.description !== undefined) issue.description = payload.description
+    if (payload.type !== undefined) issue.type = payload.type
+    if (payload.priority !== undefined) issue.priority = payload.priority
+    if (payload.sprintId !== undefined) issue.sprintId = payload.sprintId || null
+    if (payload.checklist !== undefined) issue.checklist = payload.checklist
+
+    await issue.save()
+    res.json(issue)
+  } catch (err) { if (err.isJoi) err.status = 400; next(err) }
+}
+
+async function deleteIssue (req, res, next) {
+  try {
+    const issue = await Issue.findById(req.params.id)
+    if (!issue) return res.status(404).json({ error: 'Issue not found' })
+
+    // verify board ownership
+    const board = await Board.findOne({ _id: issue.boardId, ownerId: req.user.sub })
+    if (!board) return res.status(403).json({ error: 'Forbidden' })
+
+    // Retirer l'issue du sprint si elle y est liée
+    if (issue.sprintId) {
+      await Sprint.findByIdAndUpdate(
+        issue.sprintId,
+        { $pull: { issues: issue._id } }
+      )
+    }
+
+    await issue.deleteOne()
+    res.status(204).send()
+  } catch (err) { next(err) }
+}
+
+module.exports = { createIssue, getIssues, patchReorder, patchMoveToSprint, patchDates, updateIssue, deleteIssue }

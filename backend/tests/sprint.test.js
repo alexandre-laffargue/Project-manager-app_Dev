@@ -6,6 +6,8 @@ const mockSprintFind = vi.fn()
 const mockSprintFindById = vi.fn()
 const mockSprintSave = vi.fn()
 const mockSprintConstructor = vi.fn()
+const mockIssueFindByIdAndUpdate = vi.fn()
+const mockIssueUpdateMany = vi.fn()
 
 let app
 
@@ -28,7 +30,9 @@ beforeAll(async () => {
   const MockedSprint = function(data) {
     this.save = async () => {
       mockSprintSave()
-      return { ...data, _id: 'sprint-new', ownerId: data.ownerId }
+      this._id = 'sprint-new'
+      this.ownerId = data.ownerId
+      return this
     }
     Object.assign(this, data)
     mockSprintConstructor(data)
@@ -39,6 +43,11 @@ beforeAll(async () => {
   // Replace Sprint in the module cache
   req.cache[req.resolve('../src/models/Sprint.js')].exports = MockedSprint
 
+  // Patch Issue model
+  const Issue = req('../src/models/Issue.js')
+  Issue.findByIdAndUpdate = (...args) => mockIssueFindByIdAndUpdate(...args)
+  Issue.updateMany = (...args) => mockIssueUpdateMany(...args)
+
   app = req('../src/app.js')
 })
 
@@ -47,6 +56,8 @@ beforeEach(() => {
   mockSprintFindById.mockReset()
   mockSprintSave.mockReset()
   mockSprintConstructor.mockReset()
+  mockIssueFindByIdAndUpdate.mockReset()
+  mockIssueUpdateMany.mockReset()
 })
 
 describe('Sprint API', () => {
@@ -84,6 +95,27 @@ describe('Sprint API', () => {
       expect(mockSprintSave).toHaveBeenCalled()
     })
 
+    it('should create sprint with issues and sync Issue.sprintId', async () => {
+      const sprintData = { 
+        name: 'Sprint with Issues', 
+        objective: 'Test sync',
+        issues: ['issue-1', 'issue-2']
+      }
+
+      mockIssueUpdateMany.mockResolvedValue({ modifiedCount: 2 })
+
+      const res = await request(app).post('/api/sprints').send(sprintData)
+      
+      expect(res.status).toBe(201)
+      expect(mockSprintConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({ issues: ['issue-1', 'issue-2'] })
+      )
+      expect(mockIssueUpdateMany).toHaveBeenCalledWith(
+        { _id: { $in: ['issue-1', 'issue-2'] } },
+        { $set: { sprintId: 'sprint-new' } }
+      )
+    })
+
     it('should return 400 for invalid payload', async () => {
       const res = await request(app).post('/api/sprints').send({ name: '' })
       expect(res.status).toBe(400)
@@ -104,6 +136,62 @@ describe('Sprint API', () => {
       const res = await request(app).patch('/api/sprints/sprint-1').send({ name: 'New Name' })
       expect(res.status).toBe(200)
       expect(res.body).toHaveProperty('name', 'New Name')
+    })
+
+    it('should update sprint issues and sync with Issue.sprintId', async () => {
+      const sprint = {
+        _id: 'sprint-1',
+        ownerId: 'owner-1',
+        name: 'Sprint',
+        issues: ['issue-1', 'issue-2'],
+        save: async function() { return this }
+      }
+      mockSprintFindById.mockResolvedValue(sprint)
+      mockIssueUpdateMany.mockResolvedValue({ modifiedCount: 2 })
+
+      const res = await request(app)
+        .patch('/api/sprints/sprint-1')
+        .send({ issues: ['issue-2', 'issue-3', 'issue-4'] })
+
+      expect(res.status).toBe(200)
+      expect(res.body.issues).toEqual(['issue-2', 'issue-3', 'issue-4'])
+      
+      // Should remove sprint from deleted issues
+      expect(mockIssueUpdateMany).toHaveBeenCalledWith(
+        { _id: { $in: ['issue-1'] } },
+        { $set: { sprintId: null } }
+      )
+      
+      // Should add sprint to new issues
+      expect(mockIssueUpdateMany).toHaveBeenCalledWith(
+        { _id: { $in: ['issue-3', 'issue-4'] } },
+        { $set: { sprintId: 'sprint-1' } }
+      )
+    })
+
+    it('should handle removing all issues from sprint', async () => {
+      const sprint = {
+        _id: 'sprint-1',
+        ownerId: 'owner-1',
+        name: 'Sprint',
+        issues: ['issue-1', 'issue-2'],
+        save: async function() { return this }
+      }
+      mockSprintFindById.mockResolvedValue(sprint)
+      mockIssueUpdateMany.mockResolvedValue({ modifiedCount: 2 })
+
+      const res = await request(app)
+        .patch('/api/sprints/sprint-1')
+        .send({ issues: [] })
+
+      expect(res.status).toBe(200)
+      expect(res.body.issues).toEqual([])
+      
+      // Should remove sprint from all old issues
+      expect(mockIssueUpdateMany).toHaveBeenCalledWith(
+        { _id: { $in: ['issue-1', 'issue-2'] } },
+        { $set: { sprintId: null } }
+      )
     })
 
     it('should return 404 if sprint not found', async () => {

@@ -1,5 +1,6 @@
 const Joi = require('joi')
 const Sprint = require('../models/Sprint')
+const Issue = require('../models/Issue')
 
 const createSprintSchema = Joi.object({
   name: Joi.string().min(1).required(),
@@ -39,6 +40,15 @@ const createSprint = async (req, res) => {
     const payload = { ...req.body, ownerId }
     const sprint = new Sprint(payload)
     await sprint.save()
+    
+    // Mettre à jour le sprintId des issues liées
+    if (req.body.issues && req.body.issues.length > 0) {
+      await Issue.updateMany(
+        { _id: { $in: req.body.issues } },
+        { $set: { sprintId: sprint._id } }
+      )
+    }
+    
     return res.status(201).json(sprint)
   } catch (err) {
     return res.status(500).json({ error: err.message })
@@ -52,6 +62,31 @@ const patchSprint = async (req, res) => {
     const sprint = await Sprint.findById(req.params.id)
     if (!sprint) return res.status(404).json({ error: 'Sprint not found' })
     if (sprint.ownerId.toString() !== req.user.sub) return res.status(403).json({ error: 'Forbidden' })
+    
+    // Si on modifie les issues liées
+    if (req.body.issues !== undefined) {
+      const oldIssueIds = sprint.issues.map(id => id.toString())
+      const newIssueIds = req.body.issues || []
+      
+      // Retirer le sprintId des issues qui ne sont plus dans le sprint
+      const removedIssues = oldIssueIds.filter(id => !newIssueIds.includes(id))
+      if (removedIssues.length > 0) {
+        await Issue.updateMany(
+          { _id: { $in: removedIssues } },
+          { $set: { sprintId: null } }
+        )
+      }
+      
+      // Ajouter le sprintId aux nouvelles issues
+      const addedIssues = newIssueIds.filter(id => !oldIssueIds.includes(id))
+      if (addedIssues.length > 0) {
+        await Issue.updateMany(
+          { _id: { $in: addedIssues } },
+          { $set: { sprintId: sprint._id } }
+        )
+      }
+    }
+    
     Object.assign(sprint, req.body)
     await sprint.save()
     return res.json(sprint)

@@ -10,7 +10,14 @@ const issueSchema = new mongoose.Schema(
     priority: { type: String, enum: ['Low', 'Medium', 'High'], default: 'Medium' },
     position: { type: Number, default: 0 },
     startDate: { type: Date, default: null },
-    endDate: { type: Date, default: null }
+    endDate: { type: Date, default: null },
+    checklist: [
+      {
+        id: { type: String, required: true },
+        text: { type: String, required: true },
+        checked: { type: Boolean, default: false }
+      }
+    ]
   },
   { timestamps: true }
 )
