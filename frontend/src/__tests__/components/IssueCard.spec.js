@@ -13,10 +13,11 @@ describe('IssueCard', () => {
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] },
+      props: { issue },
     })
 
     expect(wrapper.text()).toContain('Test Issue')
+    expect(wrapper.text()).toContain('Test description')
     expect(wrapper.text()).toContain('Task')
     expect(wrapper.text()).toContain('High')
 
@@ -37,12 +38,13 @@ describe('IssueCard', () => {
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] },
+      props: { issue },
     })
 
     // Should display checklist progress (2/3)
-    expect(wrapper.text()).toContain('2')
-    expect(wrapper.text()).toContain('3')
+    expect(wrapper.text()).toContain('2/3')
+    const progressBar = wrapper.find('.progress-bar')
+    expect(progressBar.exists()).toBe(true)
 
     wrapper.unmount()
   })
@@ -56,17 +58,13 @@ describe('IssueCard', () => {
       sprintId: 'sprint1',
     }
 
-    const sprints = [
-      { _id: 'sprint1', name: 'Sprint 1' },
-      { _id: 'sprint2', name: 'Sprint 2' },
-    ]
-
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints },
+      props: { issue },
     })
 
     // Issue card shows "Sprint assigné" badge when linked to a sprint
     expect(wrapper.text()).toContain('Sprint assigné')
+    expect(wrapper.find('.badge.sprint').exists()).toBe(true)
 
     wrapper.unmount()
   })
@@ -81,12 +79,11 @@ describe('IssueCard', () => {
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] },
+      props: { issue },
     })
 
     // Should not show any sprint badge
-    const html = wrapper.html()
-    expect(html).not.toContain('sprint-badge')
+    expect(wrapper.find('.badge.sprint').exists()).toBe(false)
 
     wrapper.unmount()
   })
@@ -104,11 +101,13 @@ describe('IssueCard', () => {
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] },
+      props: { issue },
     })
 
-    // Should show 2/2 completed
-    expect(wrapper.text()).toContain('2')
+    // Should show 2/2 completed and 100% progress
+    expect(wrapper.text()).toContain('2/2')
+    const progressFill = wrapper.find('.progress-fill')
+    expect(progressFill.attributes('style')).toContain('width: 100%')
 
     wrapper.unmount()
   })
@@ -127,12 +126,13 @@ describe('IssueCard', () => {
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] },
+      props: { issue },
     })
 
-    // Should show 0/3 completed
-    expect(wrapper.text()).toContain('0')
-    expect(wrapper.text()).toContain('3')
+    // Should show 0/3 completed and 0% progress
+    expect(wrapper.text()).toContain('0/3')
+    const progressFill = wrapper.find('.progress-fill')
+    expect(progressFill.attributes('style')).toContain('width: 0%')
 
     wrapper.unmount()
   })
@@ -146,7 +146,7 @@ describe('IssueCard', () => {
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] },
+      props: { issue },
     })
 
     const editBtn = wrapper.findAll('button').find((btn) => btn.text().includes('Modifier'))
@@ -169,7 +169,7 @@ describe('IssueCard', () => {
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] },
+      props: { issue },
     })
 
     const deleteBtn = wrapper.findAll('button').find((btn) => btn.text().includes('Supprimer'))
@@ -183,7 +183,7 @@ describe('IssueCard', () => {
     wrapper.unmount()
   })
 
-  it('applies correct priority class styling', () => {
+  it('applies correct priority class styling for High', () => {
     const highIssue = {
       _id: 'issue1',
       title: 'High Priority',
@@ -192,11 +192,50 @@ describe('IssueCard', () => {
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue: highIssue, sprints: [] },
+      props: { issue: highIssue },
     })
 
-    const html = wrapper.html()
-    expect(html).toContain('high')
+    const priorityBadge = wrapper.find('.badge.priority')
+    expect(priorityBadge.classes()).toContain('high')
+    expect(priorityBadge.text()).toBe('High')
+
+    wrapper.unmount()
+  })
+
+  it('applies correct priority class styling for Medium', () => {
+    const mediumIssue = {
+      _id: 'issue2',
+      title: 'Medium Priority',
+      type: 'Task',
+      priority: 'Medium',
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue: mediumIssue },
+    })
+
+    const priorityBadge = wrapper.find('.badge.priority')
+    expect(priorityBadge.classes()).toContain('medium')
+    expect(priorityBadge.text()).toBe('Medium')
+
+    wrapper.unmount()
+  })
+
+  it('applies correct priority class styling for Low', () => {
+    const lowIssue = {
+      _id: 'issue3',
+      title: 'Low Priority',
+      type: 'Feature',
+      priority: 'Low',
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue: lowIssue },
+    })
+
+    const priorityBadge = wrapper.find('.badge.priority')
+    expect(priorityBadge.classes()).toContain('low')
+    expect(priorityBadge.text()).toBe('Low')
 
     wrapper.unmount()
   })
@@ -211,11 +250,233 @@ describe('IssueCard', () => {
     }
 
     const wrapper = mount(IssueCard, {
-      props: { issue, sprints: [] },
+      props: { issue },
     })
 
     expect(wrapper.text()).toContain('Simple Issue')
-    // Should not crash or show checklist UI
+    expect(wrapper.find('.checklist-preview').exists()).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  it('handles issue with empty checklist array', () => {
+    const issue = {
+      _id: 'issue1',
+      title: 'Issue with empty checklist',
+      type: 'Task',
+      priority: 'Medium',
+      checklist: [],
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue },
+    })
+
+    expect(wrapper.text()).toContain('Issue with empty checklist')
+    expect(wrapper.find('.checklist-preview').exists()).toBe(false)
+
+    wrapper.unmount()
+  })
+
+  it('handles issue with undefined description', () => {
+    const issue = {
+      _id: 'issue1',
+      title: 'Issue without description',
+      type: 'Task',
+      priority: 'Medium',
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue },
+    })
+
+    expect(wrapper.text()).toContain('Issue without description')
+    // Should not crash
+
+    wrapper.unmount()
+  })
+
+  it('handles issue with empty description', () => {
+    const issue = {
+      _id: 'issue1',
+      title: 'Issue with empty description',
+      description: '',
+      type: 'Task',
+      priority: 'Medium',
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue },
+    })
+
+    expect(wrapper.text()).toContain('Issue with empty description')
+
+    wrapper.unmount()
+  })
+
+  it('displays all three issue types correctly', () => {
+    const taskIssue = {
+      _id: 'issue1',
+      title: 'Task Issue',
+      type: 'Task',
+      priority: 'Medium',
+    }
+
+    const wrapper1 = mount(IssueCard, { props: { issue: taskIssue } })
+    expect(wrapper1.find('.badge.type').text()).toBe('Task')
+    wrapper1.unmount()
+
+    const bugIssue = {
+      _id: 'issue2',
+      title: 'Bug Issue',
+      type: 'Bug',
+      priority: 'High',
+    }
+
+    const wrapper2 = mount(IssueCard, { props: { issue: bugIssue } })
+    expect(wrapper2.find('.badge.type').text()).toBe('Bug')
+    wrapper2.unmount()
+
+    const featureIssue = {
+      _id: 'issue3',
+      title: 'Feature Issue',
+      type: 'Feature',
+      priority: 'Low',
+    }
+
+    const wrapper3 = mount(IssueCard, { props: { issue: featureIssue } })
+    expect(wrapper3.find('.badge.type').text()).toBe('Feature')
+    wrapper3.unmount()
+  })
+
+  it('calculates progress percentage correctly for partial completion', () => {
+    const issue = {
+      _id: 'issue1',
+      title: 'Partial completion',
+      type: 'Task',
+      priority: 'Medium',
+      checklist: [
+        { id: '1', text: 'Task 1', checked: true },
+        { id: '2', text: 'Task 2', checked: false },
+        { id: '3', text: 'Task 3', checked: false },
+        { id: '4', text: 'Task 4', checked: false },
+      ],
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue },
+    })
+
+    // 1/4 = 25%
+    expect(wrapper.text()).toContain('1/4')
+    const progressFill = wrapper.find('.progress-fill')
+    expect(progressFill.attributes('style')).toContain('width: 25%')
+
+    wrapper.unmount()
+  })
+
+  it('handles checklist with MongoDB _id field', () => {
+    const issue = {
+      _id: 'issue1',
+      title: 'Issue with MongoDB IDs',
+      type: 'Task',
+      priority: 'Medium',
+      checklist: [
+        { _id: 'mongo-id-1', id: '1', text: 'Task 1', checked: true },
+        { _id: 'mongo-id-2', id: '2', text: 'Task 2', checked: false },
+      ],
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue },
+    })
+
+    // Should handle MongoDB _id field without issues
+    expect(wrapper.text()).toContain('1/2')
+    expect(wrapper.find('.checklist-preview').exists()).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('renders both edit and delete buttons', () => {
+    const issue = {
+      _id: 'issue1',
+      title: 'Test Issue',
+      type: 'Task',
+      priority: 'Medium',
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue },
+    })
+
+    const buttons = wrapper.findAll('button')
+    expect(buttons.length).toBe(2)
+
+    const editBtn = buttons.find((btn) => btn.text().includes('Modifier'))
+    const deleteBtn = buttons.find((btn) => btn.text().includes('Supprimer'))
+
+    expect(editBtn).toBeDefined()
+    expect(deleteBtn).toBeDefined()
+
+    wrapper.unmount()
+  })
+
+  it('displays checklist icon when checklist exists', () => {
+    const issue = {
+      _id: 'issue1',
+      title: 'Issue with checklist',
+      type: 'Task',
+      priority: 'Medium',
+      checklist: [{ id: '1', text: 'Task 1', checked: false }],
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue },
+    })
+
+    expect(wrapper.find('.checklist-icon').exists()).toBe(true)
+    expect(wrapper.find('.checklist-icon').text()).toBe('✓')
+
+    wrapper.unmount()
+  })
+
+  it('handles long titles and descriptions gracefully', () => {
+    const issue = {
+      _id: 'issue1',
+      title: 'A'.repeat(200),
+      description: 'B'.repeat(500),
+      type: 'Task',
+      priority: 'Medium',
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue },
+    })
+
+    expect(wrapper.find('h4').text()).toBe('A'.repeat(200))
+    expect(wrapper.find('p').text()).toBe('B'.repeat(500))
+
+    wrapper.unmount()
+  })
+
+  it('handles special characters in title and description', () => {
+    const issue = {
+      _id: 'issue1',
+      title: '<script>alert("xss")</script>',
+      description: 'Test & "quotes" and \'apostrophes\'',
+      type: 'Task',
+      priority: 'Medium',
+    }
+
+    const wrapper = mount(IssueCard, {
+      props: { issue },
+    })
+
+    // Vue should escape HTML by default
+    const html = wrapper.html()
+    expect(html).not.toContain('<script>')
+    expect(wrapper.text()).toContain('alert')
 
     wrapper.unmount()
   })

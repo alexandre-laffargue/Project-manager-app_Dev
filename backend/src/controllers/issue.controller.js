@@ -187,6 +187,7 @@ const updateSchema = Joi.object({
       id: Joi.string().required(),
       text: Joi.string().required(),
       checked: Joi.boolean().default(false),
+      _id: Joi.any().optional(), // MongoDB ajoute automatiquement ce champ
     }),
   ),
 });
