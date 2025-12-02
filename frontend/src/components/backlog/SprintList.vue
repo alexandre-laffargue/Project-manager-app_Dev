@@ -10,6 +10,9 @@
         :all-issues="allIssues"
         @edit="$emit('edit-sprint', $event)"
         @delete="$emit('delete-sprint', $event)"
+        @start="$emit('start-sprint', $event)"
+        @close="$emit('close-sprint', $event)"
+        @reopen="$emit('reopen-sprint', $event)"
       />
     </div>
 
@@ -27,7 +30,7 @@ defineProps({
   allIssues: { type: Array, default: () => [] },
 })
 
-defineEmits(['edit-sprint', 'delete-sprint'])
+defineEmits(['edit-sprint', 'delete-sprint', 'start-sprint', 'close-sprint', 'reopen-sprint'])
 </script>
 
 <style scoped>

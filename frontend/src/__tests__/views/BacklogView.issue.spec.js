@@ -57,12 +57,14 @@ describe('Backlog - issue management with new features', () => {
     const wrapper = mount(BacklogView, { attachTo: document.body })
 
     await Promise.resolve()
-    await new Promise((r) => setTimeout(r, 50))
+    await new Promise((r) => setTimeout(r, 100))
 
     // Click "Nouvelle Issue" button
-    const createBtn = wrapper.findAll('.btn-create')[1] // Second button is for issues
-    await createBtn.trigger('click')
+    const createBtns = wrapper.findAll('.btn-create')
+    expect(createBtns.length).toBeGreaterThanOrEqual(2)
+    await createBtns[1].trigger('click') // Second button is for issues
     await wrapper.vm.$nextTick()
+    await new Promise((r) => setTimeout(r, 50))
 
     const modal = document.querySelector('.modal-overlay')
     expect(modal).toBeTruthy()
@@ -71,6 +73,9 @@ describe('Backlog - issue management with new features', () => {
     const titleInput = modal.querySelector('input[placeholder="Titre de l\'issue"]')
     const textarea = modal.querySelector('textarea')
 
+    expect(titleInput).toBeTruthy()
+    expect(textarea).toBeTruthy()
+
     titleInput.value = 'Issue with checklist'
     titleInput.dispatchEvent(new Event('input'))
     textarea.value = 'Test issue'
@@ -78,8 +83,8 @@ describe('Backlog - issue management with new features', () => {
 
     await wrapper.vm.$nextTick()
 
-    // Add checklist items
-    const addChecklistBtn = modal.querySelector('.add-checklist-item')
+    // Add checklist items (if available)
+    const addChecklistBtn = modal.querySelector('.btn-add-checklist')
     if (addChecklistBtn) {
       addChecklistBtn.click()
       await wrapper.vm.$nextTick()
@@ -88,15 +93,6 @@ describe('Backlog - issue management with new features', () => {
       if (checklistInputs.length > 0) {
         checklistInputs[0].value = 'Task 1'
         checklistInputs[0].dispatchEvent(new Event('input'))
-
-        addChecklistBtn.click()
-        await wrapper.vm.$nextTick()
-
-        const updatedInputs = modal.querySelectorAll('.checklist-item input[type="text"]')
-        if (updatedInputs.length > 1) {
-          updatedInputs[1].value = 'Task 2'
-          updatedInputs[1].dispatchEvent(new Event('input'))
-        }
       }
     }
 

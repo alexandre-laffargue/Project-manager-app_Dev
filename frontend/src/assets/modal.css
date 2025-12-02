@@ -140,3 +140,44 @@
 .btn-secondary:active {
   background-color: #c0c0c0;
 }
+
+/* Color selection in modal */
+.color-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.color-selection label {
+  font-weight: 500;
+  color: #555;
+}
+
+.color-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.color-option-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.color-option-btn:hover {
+  transform: scale(1.1);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.color-option-btn.active {
+  border-color: #333;
+  box-shadow:
+    0 0 0 2px white,
+    0 0 0 4px #333;
+  transform: scale(1.15);
+}

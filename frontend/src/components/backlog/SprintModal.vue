@@ -68,6 +68,7 @@ const form = reactive({
   startDate: '',
   endDate: '',
   objective: '',
+  color: '#7b5fc0',
 })
 
 const selectedIssueIds = ref([])
@@ -77,6 +78,7 @@ function resetForm() {
   form.startDate = ''
   form.endDate = ''
   form.objective = ''
+  form.color = '#7b5fc0'
   selectedIssueIds.value = []
 }
 

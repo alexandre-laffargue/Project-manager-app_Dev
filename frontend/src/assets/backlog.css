@@ -106,7 +106,6 @@
 
 /* SprintCard styles */
 .sprint-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 12px;
   padding: 20px;
   color: white;
@@ -116,6 +115,19 @@
   max-width: 100%;
   box-sizing: border-box;
   overflow: hidden;
+}
+
+/* Couleurs selon le statut */
+.sprint-card.status-planned {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.sprint-card.status-active {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+}
+
+.sprint-card.status-completed {
+  background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
 }
 
 .sprint-card:hover {
@@ -130,12 +142,54 @@
   margin-bottom: 16px;
 }
 
+.sprint-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .sprint-info h3 {
-  margin: 0 0 8px 0;
+  margin: 0;
   font-size: 1.4rem;
   font-weight: 600;
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-planned {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.status-active {
+  background: #48bb78;
+  color: white;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.status-completed {
+  background: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 .sprint-dates {
@@ -184,6 +238,14 @@
   flex-wrap: wrap;
 }
 
+.action-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: flex-end;
+}
+
 .sprint-actions button {
   padding: 8px 16px;
   border: none;
@@ -195,13 +257,14 @@
 }
 
 .btn-view-issues {
-  flex: 1;
   background: rgba(255, 255, 255, 0.25);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  height: 36px;
+  align-self: center;
 }
 
 .btn-view-issues:hover {
@@ -210,6 +273,32 @@
 
 .btn-view-issues span {
   font-size: 0.8rem;
+}
+
+.btn-start {
+  background: #48bb78;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-start:hover {
+  background: #38a169;
+  transform: translateY(-1px);
+}
+
+.btn-close {
+  background: #ed8936;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-close:hover {
+  background: #dd6b20;
+  transform: translateY(-1px);
 }
 
 .btn-edit {
@@ -229,6 +318,19 @@
 
 .btn-delete:hover {
   background: #ff1744;
+  transform: translateY(-1px);
+}
+
+.btn-reopen {
+  background: #5a67d8;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-reopen:hover {
+  background: #4c51bf;
   transform: translateY(-1px);
 }
 

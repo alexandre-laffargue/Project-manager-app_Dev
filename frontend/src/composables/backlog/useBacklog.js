@@ -67,6 +67,7 @@ export function useBacklog() {
         startDate: created.startDate || formData.startDate,
         endDate: created.endDate || formData.endDate,
         objective: created.objective || formData.objective,
+        status: created.status || 'planned',
         issues: created.issues || [],
       })
       showCreateSprintModal.value = false
@@ -207,6 +208,47 @@ export function useBacklog() {
     }
   }
 
+  async function startSprint(sprint) {
+    try {
+      const updated = await post(`/api/sprints/${sprint._id}/start`)
+      const sprintInList = sprints.find((s) => s._id === sprint._id)
+      if (sprintInList) {
+        sprintInList.status = updated.status
+        sprintInList.startDate = updated.startDate
+      }
+    } catch (err) {
+      console.error('Erreur lors du démarrage du sprint :', err)
+      alert('Erreur lors du démarrage du sprint.')
+    }
+  }
+
+  async function closeSprint(sprint) {
+    try {
+      const updated = await post(`/api/sprints/${sprint._id}/close`)
+      const sprintInList = sprints.find((s) => s._id === sprint._id)
+      if (sprintInList) {
+        sprintInList.status = updated.status
+        sprintInList.endDate = updated.endDate
+      }
+    } catch (err) {
+      console.error('Erreur lors de la clôture du sprint :', err)
+      alert('Erreur lors de la clôture du sprint.')
+    }
+  }
+
+  async function reopenSprint(sprint) {
+    try {
+      const updated = await post(`/api/sprints/${sprint._id}/reopen`)
+      const sprintInList = sprints.find((s) => s._id === sprint._id)
+      if (sprintInList) {
+        sprintInList.status = updated.status
+      }
+    } catch (err) {
+      console.error('Erreur lors de la réouverture du sprint :', err)
+      alert('Erreur lors de la réouverture du sprint.')
+    }
+  }
+
   return {
     isAuthenticated,
     sprints,
@@ -223,6 +265,9 @@ export function useBacklog() {
     closeEditSprintModal,
     saveEditSprint,
     deleteSprint,
+    startSprint,
+    closeSprint,
+    reopenSprint,
     createIssue,
     openEditIssueModal,
     closeEditIssueModal,

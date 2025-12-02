@@ -1,8 +1,11 @@
 <template>
-  <div class="sprint-card">
+  <div class="sprint-card" :class="statusClass">
     <div class="sprint-header">
       <div class="sprint-info">
-        <h3>{{ sprint.name }}</h3>
+        <div class="sprint-title-row">
+          <h3>{{ sprint.name }}</h3>
+          <span class="status-badge" :class="statusClass">{{ statusLabel }}</span>
+        </div>
         <div class="sprint-dates">
           <span class="date-icon">📅</span>
           <span>{{ formatDate(sprint.startDate) }} → {{ formatDate(sprint.endDate) }}</span>
@@ -22,8 +25,36 @@
         <span>{{ showIssues ? '▼' : '▶' }}</span>
         {{ showIssues ? 'Masquer' : 'Voir' }} les issues
       </button>
-      <button @click="$emit('edit', sprint)" class="btn-edit">Modifier</button>
-      <button @click="$emit('delete', sprint)" class="btn-delete">Supprimer</button>
+
+      <div class="action-group">
+        <button
+          v-if="sprint.status === 'planned'"
+          @click="$emit('start', sprint)"
+          class="btn-start"
+          title="Démarrer le sprint"
+        >
+          ▶ Démarrer
+        </button>
+        <button
+          v-if="sprint.status === 'active'"
+          @click="$emit('close', sprint)"
+          class="btn-close"
+          title="Clôturer le sprint"
+        >
+          ✓ Clôturer
+        </button>
+        <button
+          v-if="sprint.status === 'completed'"
+          @click="$emit('reopen', sprint)"
+          class="btn-reopen"
+          title="Réouvrir le sprint"
+        >
+          ↺ Réouvrir
+        </button>
+
+        <button @click="$emit('edit', sprint)" class="btn-edit">Modifier</button>
+        <button @click="$emit('delete', sprint)" class="btn-delete">Supprimer</button>
+      </div>
     </div>
 
     <div v-if="showIssues" class="sprint-issues">
@@ -53,9 +84,22 @@ const props = defineProps({
   allIssues: { type: Array, default: () => [] },
 })
 
-defineEmits(['edit', 'delete'])
-
 const showIssues = ref(false)
+
+const statusClass = computed(() => {
+  const status = props.sprint.status || 'planned'
+  return `status-${status}`
+})
+
+const statusLabel = computed(() => {
+  const status = props.sprint.status || 'planned'
+  const labels = {
+    planned: 'Planifié',
+    active: 'En cours',
+    completed: 'Terminé',
+  }
+  return labels[status] || status
+})
 
 const linkedIssues = computed(() => {
   if (!props.allIssues || !props.sprint._id) return []

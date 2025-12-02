@@ -6,6 +6,7 @@ const mockSprintFind = vi.fn();
 const mockSprintFindById = vi.fn();
 const mockSprintSave = vi.fn();
 const mockSprintConstructor = vi.fn();
+const mockSprintUpdateMany = vi.fn();
 const mockIssueFindByIdAndUpdate = vi.fn();
 const mockIssueUpdateMany = vi.fn();
 
@@ -27,6 +28,7 @@ beforeAll(async () => {
   const Sprint = req("../src/models/Sprint.js");
   Sprint.find = (...args) => mockSprintFind(...args);
   Sprint.findById = (...args) => mockSprintFindById(...args);
+  Sprint.updateMany = (...args) => mockSprintUpdateMany(...args);
 
   // Mock Sprint constructor
   const OriginalSprint = Sprint;
@@ -42,6 +44,7 @@ beforeAll(async () => {
   };
   MockedSprint.find = Sprint.find;
   MockedSprint.findById = Sprint.findById;
+  MockedSprint.updateMany = Sprint.updateMany;
 
   // Replace Sprint in the module cache
   req.cache[req.resolve("../src/models/Sprint.js")].exports = MockedSprint;
@@ -59,6 +62,7 @@ beforeEach(() => {
   mockSprintFindById.mockReset();
   mockSprintSave.mockReset();
   mockSprintConstructor.mockReset();
+  mockSprintUpdateMany.mockReset();
   mockIssueFindByIdAndUpdate.mockReset();
   mockIssueUpdateMany.mockReset();
 });
@@ -107,6 +111,7 @@ describe("Sprint API", () => {
         issues: ["issue-1", "issue-2"],
       };
 
+      mockSprintUpdateMany.mockResolvedValue({ modifiedCount: 0 });
       mockIssueUpdateMany.mockResolvedValue({ modifiedCount: 2 });
 
       const res = await request(app).post("/api/sprints").send(sprintData);
@@ -115,6 +120,14 @@ describe("Sprint API", () => {
       expect(mockSprintConstructor).toHaveBeenCalledWith(
         expect.objectContaining({ issues: ["issue-1", "issue-2"] }),
       );
+
+      // Should remove issues from other sprints first
+      expect(mockSprintUpdateMany).toHaveBeenCalledWith(
+        { issues: { $in: ["issue-1", "issue-2"] }, _id: { $ne: "sprint-new" } },
+        { $pull: { issues: { $in: ["issue-1", "issue-2"] } } },
+      );
+
+      // Then assign to new sprint
       expect(mockIssueUpdateMany).toHaveBeenCalledWith(
         { _id: { $in: ["issue-1", "issue-2"] } },
         { $set: { sprintId: "sprint-new" } },
@@ -158,6 +171,7 @@ describe("Sprint API", () => {
         },
       };
       mockSprintFindById.mockResolvedValue(sprint);
+      mockSprintUpdateMany.mockResolvedValue({ modifiedCount: 0 });
       mockIssueUpdateMany.mockResolvedValue({ modifiedCount: 2 });
 
       const res = await request(app)
@@ -171,6 +185,12 @@ describe("Sprint API", () => {
       expect(mockIssueUpdateMany).toHaveBeenCalledWith(
         { _id: { $in: ["issue-1"] } },
         { $set: { sprintId: null } },
+      );
+
+      // Should remove new issues from other sprints first
+      expect(mockSprintUpdateMany).toHaveBeenCalledWith(
+        { issues: { $in: ["issue-3", "issue-4"] }, _id: { $ne: "sprint-1" } },
+        { $pull: { issues: { $in: ["issue-3", "issue-4"] } } },
       );
 
       // Should add sprint to new issues
@@ -240,10 +260,33 @@ describe("Sprint API", () => {
   });
 
   describe("DELETE /api/sprints/:id", () => {
-    it("should delete a sprint", async () => {
+    it("should delete a sprint and remove sprintId from linked issues", async () => {
       const sprint = {
         _id: "sprint-1",
         ownerId: "owner-1",
+        issues: ["issue-1", "issue-2"],
+        deleteOne: async function () {
+          return;
+        },
+      };
+      mockSprintFindById.mockResolvedValue(sprint);
+      mockIssueUpdateMany.mockResolvedValue({ modifiedCount: 2 });
+
+      const res = await request(app).delete("/api/sprints/sprint-1");
+      expect(res.status).toBe(204);
+
+      // Should remove sprintId from all linked issues
+      expect(mockIssueUpdateMany).toHaveBeenCalledWith(
+        { _id: { $in: ["issue-1", "issue-2"] } },
+        { $set: { sprintId: null } },
+      );
+    });
+
+    it("should delete a sprint without issues", async () => {
+      const sprint = {
+        _id: "sprint-1",
+        ownerId: "owner-1",
+        issues: [],
         deleteOne: async function () {
           return;
         },
@@ -252,6 +295,9 @@ describe("Sprint API", () => {
 
       const res = await request(app).delete("/api/sprints/sprint-1");
       expect(res.status).toBe(204);
+
+      // Should not call updateMany when no issues
+      expect(mockIssueUpdateMany).not.toHaveBeenCalled();
     });
 
     it("should return 404 if sprint not found", async () => {
@@ -273,10 +319,11 @@ describe("Sprint API", () => {
   });
 
   describe("POST /api/sprints/:id/start", () => {
-    it("should start a sprint by setting startDate", async () => {
+    it("should start a sprint by setting status to active", async () => {
       const sprint = {
         _id: "sprint-1",
         ownerId: "owner-1",
+        status: "planned",
         startDate: null,
         save: async function () {
           return this;
@@ -286,6 +333,7 @@ describe("Sprint API", () => {
 
       const res = await request(app).post("/api/sprints/sprint-1/start");
       expect(res.status).toBe(200);
+      expect(res.body.status).toBe("active");
       expect(res.body.startDate).toBeTruthy();
     });
 
@@ -293,6 +341,7 @@ describe("Sprint API", () => {
       const sprint = {
         _id: "sprint-1",
         ownerId: "owner-1",
+        status: "active",
         startDate: new Date(),
         save: async function () {
           return this;
@@ -305,6 +354,25 @@ describe("Sprint API", () => {
       expect(res.body).toHaveProperty("error", "Sprint already started");
     });
 
+    it("should return 400 if trying to start a completed sprint", async () => {
+      const sprint = {
+        _id: "sprint-1",
+        ownerId: "owner-1",
+        status: "completed",
+        save: async function () {
+          return this;
+        },
+      };
+      mockSprintFindById.mockResolvedValue(sprint);
+
+      const res = await request(app).post("/api/sprints/sprint-1/start");
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty(
+        "error",
+        "Cannot start a completed sprint",
+      );
+    });
+
     it("should return 404 if sprint not found", async () => {
       mockSprintFindById.mockResolvedValue(null);
 
@@ -315,10 +383,11 @@ describe("Sprint API", () => {
   });
 
   describe("POST /api/sprints/:id/close", () => {
-    it("should close a sprint by setting endDate", async () => {
+    it("should close a sprint by setting status to completed", async () => {
       const sprint = {
         _id: "sprint-1",
         ownerId: "owner-1",
+        status: "active",
         endDate: null,
         save: async function () {
           return this;
@@ -328,6 +397,7 @@ describe("Sprint API", () => {
 
       const res = await request(app).post("/api/sprints/sprint-1/close");
       expect(res.status).toBe(200);
+      expect(res.body.status).toBe("completed");
       expect(res.body.endDate).toBeTruthy();
     });
 
@@ -335,6 +405,7 @@ describe("Sprint API", () => {
       const sprint = {
         _id: "sprint-1",
         ownerId: "owner-1",
+        status: "active",
         endDate: null,
         save: async function () {
           return this;
@@ -347,6 +418,7 @@ describe("Sprint API", () => {
         .post("/api/sprints/sprint-1/close")
         .send({ endDate: customDate });
       expect(res.status).toBe(200);
+      expect(res.body.status).toBe("completed");
       expect(res.body.endDate).toBeTruthy();
     });
 
@@ -354,6 +426,7 @@ describe("Sprint API", () => {
       const sprint = {
         _id: "sprint-1",
         ownerId: "owner-1",
+        status: "completed",
         endDate: new Date(),
         save: async function () {
           return this;
@@ -364,6 +437,64 @@ describe("Sprint API", () => {
       const res = await request(app).post("/api/sprints/sprint-1/close");
       expect(res.status).toBe(400);
       expect(res.body).toHaveProperty("error", "Sprint already closed");
+    });
+  });
+
+  describe("POST /api/sprints/:id/reopen", () => {
+    it("should reopen a completed sprint by setting status to planned", async () => {
+      const sprint = {
+        _id: "sprint-1",
+        ownerId: "owner-1",
+        status: "completed",
+        save: async function () {
+          return this;
+        },
+      };
+      mockSprintFindById.mockResolvedValue(sprint);
+
+      const res = await request(app).post("/api/sprints/sprint-1/reopen");
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe("planned");
+    });
+
+    it("should return 400 if sprint is not completed", async () => {
+      const sprint = {
+        _id: "sprint-1",
+        ownerId: "owner-1",
+        status: "active",
+        save: async function () {
+          return this;
+        },
+      };
+      mockSprintFindById.mockResolvedValue(sprint);
+
+      const res = await request(app).post("/api/sprints/sprint-1/reopen");
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty(
+        "error",
+        "Only completed sprints can be reopened",
+      );
+    });
+
+    it("should return 404 if sprint not found", async () => {
+      mockSprintFindById.mockResolvedValue(null);
+
+      const res = await request(app).post("/api/sprints/missing/reopen");
+      expect(res.status).toBe(404);
+      expect(res.body).toHaveProperty("error", "Sprint not found");
+    });
+
+    it("should return 403 if user is not the owner", async () => {
+      const sprint = {
+        _id: "sprint-1",
+        ownerId: "other-owner",
+        status: "completed",
+      };
+      mockSprintFindById.mockResolvedValue(sprint);
+
+      const res = await request(app).post("/api/sprints/sprint-1/reopen");
+      expect(res.status).toBe(403);
+      expect(res.body).toHaveProperty("error", "Forbidden");
     });
   });
 });
