@@ -3,30 +3,58 @@ const Issue = require("../models/Issue");
 const Board = require("../models/Board");
 const Timeline = require("../models/Timeline");
 
-async function computeTimelineForBoard(boardId, ownerId) {
-  const filter = { ownerId };
-  if (boardId) filter.boardId = boardId;
+async function computeTimelineForBoard(boardId, ownerId, selectedSprints = null, selectedIssues = null) {
+  console.log('[Timeline] Computing timeline:', { boardId, ownerId, selectedSprints, selectedIssues });
+  
+  // --- Sprints ---
+  let sprints = [];
+  // Check if selection is provided (not null/undefined)
+  const hasSprintSelection = selectedSprints !== null && selectedSprints !== undefined;
+  
+  if (hasSprintSelection) {
+      if (selectedSprints.length > 0) {
+         sprints = await Sprint.find({ _id: { $in: selectedSprints } }).sort({ startDate: 1, createdAt: 1 }).lean();
+      }
+      // If length is 0, sprints remains []
+      console.log('[Timeline] Found selected sprints:', sprints.length);
+  } else {
+      // No selection provided -> Fetch All
+      const filter = { ownerId };
+      if (boardId) filter.boardId = boardId;
+      sprints = await Sprint.find(filter).sort({ startDate: 1, createdAt: 1 }).lean();
+      console.log('[Timeline] Found all sprints for board:', sprints.length);
+  }
 
-  const sprints = await Sprint.find(filter)
-    .sort({ startDate: 1, createdAt: 1 })
-    .lean();
-
-  const sprintIds = sprints.map((s) => s._id);
-  const issues = await Issue.find(
-    Object.assign({}, boardId ? { boardId } : {}, {
-      sprintId: { $in: sprintIds },
-    }),
-  )
-    .sort({ startDate: 1, position: 1 })
-    .lean();
-
+  const sprintIds = sprints.map((s) => s._id.toString());
   const bySprint = {};
   sprints.forEach((s) => {
     bySprint[s._id.toString()] = [];
   });
+
+  // --- Issues ---
+  let issues = [];
+  const hasIssueSelection = selectedIssues !== null && selectedIssues !== undefined;
+
+  if (hasIssueSelection) {
+      if (selectedIssues.length > 0) {
+          issues = await Issue.find({ _id: { $in: selectedIssues } }).sort({ startDate: 1, position: 1 }).lean();
+      }
+      console.log('[Timeline] Found selected issues:', issues.length);
+  } else {
+      // No selection provided -> Fetch All in Sprints
+      const issueFilter = Object.assign({}, boardId ? { boardId } : {}, {
+        sprintId: { $in: sprintIds },
+      });
+      issues = await Issue.find(issueFilter).sort({ startDate: 1, position: 1 }).lean();
+      console.log('[Timeline] Found all issues in sprints:', issues.length);
+  }
+
+  // Distribute issues to sprints
   issues.forEach((i) => {
     const sid = i.sprintId ? i.sprintId.toString() : null;
-    if (sid && bySprint[sid]) bySprint[sid].push(i);
+    if (sid && bySprint[sid]) {
+        bySprint[sid].push(i);
+    }
   });
 
   const sprintsWithIssues = sprints.map((s) => ({
@@ -34,15 +62,31 @@ async function computeTimelineForBoard(boardId, ownerId) {
     issues: bySprint[s._id.toString()] || [],
   }));
 
-  const backlogQ = {};
-  if (boardId) backlogQ.boardId = boardId;
-  backlogQ.sprintId = null;
-  const backlog = await Issue.find(backlogQ).sort({ position: 1 }).lean();
+  // --- Backlog ---
+  let backlog = [];
+  
+  if (hasIssueSelection) {
+      // If we have explicit issue selection, we already fetched them in 'issues' variable above.
+      // We include issues that have no sprint, OR issues whose sprint is not in the selected sprints list.
+      backlog = issues.filter(i => {
+          const sid = i.sprintId ? i.sprintId.toString() : null;
+          return !sid || !bySprint[sid];
+      });
+  } else {
+      // No selection -> Fetch all backlog
+      const backlogQ = {};
+      if (boardId) backlogQ.boardId = boardId;
+      backlogQ.sprintId = null;
+      backlog = await Issue.find(backlogQ).sort({ position: 1 }).lean();
+  }
+
+  console.log('[Timeline] Found backlog issues:', backlog.length);
+  console.log('[Timeline] Result:', { sprintsCount: sprintsWithIssues.length, backlogCount: backlog.length });
 
   return { sprints: sprintsWithIssues, backlog };
 }
 
-// GET /timeline?boardId=...  — returns latest snapshot if available, else computes and persists one
+// GET /timeline?boardId=...  — returns all timelines for the board/owner
 async function getTimeline(req, res, next) {
   try {
     const boardId = req.query.boardId;
@@ -54,25 +98,15 @@ async function getTimeline(req, res, next) {
       if (!board) return res.status(404).json({ error: "Board not found" });
     }
 
-    // try to find latest snapshot
-    const snapshot = await Timeline.findOne({
+    // Find all timelines for this board/owner, sorted by most recent first
+    const timelines = await Timeline.find({
       boardId: boardId || null,
       ownerId: req.user.sub,
     })
       .sort({ snapshotDate: -1 })
       .lean();
-    if (snapshot) return res.json({ snapshot });
-
-    // compute and persist new snapshot
-    const data = await computeTimelineForBoard(boardId, req.user.sub);
-    const t = new Timeline({
-      boardId: boardId || null,
-      ownerId: req.user.sub,
-      data,
-      snapshotDate: new Date(),
-    });
-    await t.save();
-    return res.json({ snapshot: t });
+    
+    return res.json(timelines);
   } catch (err) {
     next(err);
   }
@@ -100,6 +134,8 @@ async function createTimeline(req, res, next) {
       ownerId: req.user.sub,
       name: payload.name || "Timeline snapshot",
       data,
+      selectedSprints: payload.selectedSprints || [],
+      selectedIssues: payload.selectedIssues || [],
       snapshotDate: new Date(),
       version: 1,
     });
@@ -118,7 +154,12 @@ async function refreshTimeline(req, res, next) {
     if (t.ownerId.toString() !== req.user.sub)
       return res.status(403).json({ error: "Forbidden" });
 
-    const data = await computeTimelineForBoard(t.boardId, req.user.sub);
+    const data = await computeTimelineForBoard(
+      t.boardId,
+      req.user.sub,
+      t.selectedSprints,
+      t.selectedIssues
+    );
     t.data = data;
     t.snapshotDate = new Date();
     t.version = (t.version || 0) + 1;
@@ -140,6 +181,10 @@ async function updateTimeline(req, res, next) {
     if (req.body.name !== undefined) up.name = req.body.name;
     if (req.body.isPublished !== undefined)
       up.isPublished = req.body.isPublished;
+    if (req.body.selectedSprints !== undefined)
+      up.selectedSprints = req.body.selectedSprints;
+    if (req.body.selectedIssues !== undefined)
+      up.selectedIssues = req.body.selectedIssues;
     Object.assign(t, up);
     await t.save();
     res.json({ snapshot: t });

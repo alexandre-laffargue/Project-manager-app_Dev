@@ -182,6 +182,8 @@ const updateSchema = Joi.object({
   type: Joi.string().valid("Bug", "Feature", "Task"),
   priority: Joi.string().valid("Low", "Medium", "High"),
   sprintId: Joi.string().allow(null),
+  startDate: Joi.date().allow(null),
+  endDate: Joi.date().allow(null),
   checklist: Joi.array().items(
     Joi.object({
       id: Joi.string().required(),
@@ -234,6 +236,8 @@ async function updateIssue(req, res, next) {
     if (payload.priority !== undefined) issue.priority = payload.priority;
     if (payload.sprintId !== undefined)
       issue.sprintId = payload.sprintId || null;
+    if (payload.startDate !== undefined) issue.startDate = payload.startDate;
+    if (payload.endDate !== undefined) issue.endDate = payload.endDate;
     if (payload.checklist !== undefined) issue.checklist = payload.checklist;
 
     await issue.save();

@@ -5,7 +5,7 @@ const timelineSchema = new mongoose.Schema(
     boardId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Board",
-      required: true,
+      required: false,
       index: true,
     },
     ownerId: {
@@ -16,6 +16,8 @@ const timelineSchema = new mongoose.Schema(
     },
     name: { type: String, default: "Timeline snapshot" },
     data: { type: mongoose.Schema.Types.Mixed, default: {} },
+    selectedSprints: { type: [mongoose.Schema.Types.ObjectId], default: [] },
+    selectedIssues: { type: [mongoose.Schema.Types.ObjectId], default: [] },
     snapshotDate: { type: Date, default: Date.now },
     version: { type: Number, default: 1 },
     isPublished: { type: Boolean, default: true },
