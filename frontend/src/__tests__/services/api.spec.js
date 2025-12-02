@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { setAuthToken, post, get, patch, del } from '@/services/api'
+import { setAuthToken, setRefreshToken, post, get, patch, del } from '@/services/api'
 
 describe('API Service', () => {
   let fetchMock
@@ -8,6 +8,15 @@ describe('API Service', () => {
     fetchMock = vi.fn()
     globalThis.fetch = fetchMock
     setAuthToken(null)
+    setRefreshToken(null)
+    localStorage.clear()
+    sessionStorage.clear()
+    
+    // Mock window.location.href
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true
+    })
   })
 
   afterEach(() => {
@@ -212,6 +221,121 @@ describe('API Service', () => {
       })
 
       await expect(get('/api/error')).rejects.toThrow('Request failed')
+    })
+  })
+
+  describe('Token Refresh', () => {
+    it('refreshes token on 401 and retries request', async () => {
+      setAuthToken('expired-token')
+      setRefreshToken('valid-refresh-token')
+
+      // First call fails with 401
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: () => Promise.resolve({ error: 'Token expired' })
+      })
+
+      // Refresh call succeeds
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ token: 'new-access-token' })
+      })
+
+      // Retry call succeeds
+      fetchMock.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ data: 'success' })
+      })
+
+      const result = await get('/api/protected')
+
+      expect(fetchMock).toHaveBeenCalledTimes(3)
+      // 1. Initial request
+      expect(fetchMock).toHaveBeenNthCalledWith(1, '/api/protected', expect.anything())
+      // 2. Refresh request
+      expect(fetchMock).toHaveBeenNthCalledWith(2, expect.stringContaining('/api/auth/refresh'), expect.anything())
+      // 3. Retry request with new token
+      expect(fetchMock).toHaveBeenNthCalledWith(3, '/api/protected', expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer new-access-token'
+        })
+      }))
+      expect(result).toEqual({ data: 'success' })
+    })
+
+    it('logs out user if refresh fails', async () => {
+      setAuthToken('expired-token')
+      setRefreshToken('invalid-refresh-token')
+
+      // First call fails with 401
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        json: () => Promise.resolve({ error: 'Token expired' })
+      })
+
+      // Refresh call fails
+      fetchMock.mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        json: () => Promise.resolve({ error: 'Invalid refresh token' })
+      })
+
+      await expect(get('/api/protected')).rejects.toThrow('Refresh failed')
+
+      expect(window.location.href).toBe('/login')
+    })
+
+    it('queues concurrent requests during refresh', async () => {
+      setAuthToken('expired-token')
+      setRefreshToken('valid-refresh-token')
+
+      // Mock responses
+      fetchMock.mockImplementation(async (url) => {
+        if (url === '/api/req1' || url === '/api/req2') {
+          // If no token or expired token, return 401
+          // We need to simulate state change. 
+          // But simpler: use a counter or check headers.
+          // Actually, let's just use mockResolvedValueOnce for the 401s and refresh
+          // and mockImplementation for the retries.
+          return {
+             ok: true,
+             json: () => Promise.resolve({ id: url === '/api/req1' ? 1 : 2 })
+          }
+        }
+        return { ok: true, json: () => Promise.resolve({}) }
+      })
+
+      // Override the first few calls to force the refresh flow
+      fetchMock
+        .mockResolvedValueOnce({ // Req 1 -> 401
+          ok: false,
+          status: 401,
+          json: () => Promise.resolve({ error: 'Token expired' })
+        })
+        .mockResolvedValueOnce({ // Req 2 -> 401
+          ok: false,
+          status: 401,
+          json: () => Promise.resolve({ error: 'Token expired' })
+        })
+        .mockResolvedValueOnce({ // Refresh
+          ok: true,
+          json: () => Promise.resolve({ token: 'new-token' })
+        })
+        // Subsequent calls will use the mockImplementation above (returning id 1 or 2)
+
+      const [res1, res2] = await Promise.all([
+        get('/api/req1'),
+        get('/api/req2')
+      ])
+
+      expect(res1).toEqual({ id: 1 })
+      expect(res2).toEqual({ id: 2 })
+      
+      // Should only call refresh once
+      const refreshCalls = fetchMock.mock.calls.filter(call => call[0].includes('/refresh'))
+      expect(refreshCalls.length).toBe(1)
     })
   })
 })

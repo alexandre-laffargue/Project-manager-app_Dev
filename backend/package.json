@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "test": "NODE_ENV=test vitest",
-    "test:watch": "NODE_ENV=test vitest",
+    "test": "cross-env NODE_ENV=test vitest",
+    "test:watch": "cross-env NODE_ENV=test vitest",
     "lint": "eslint . --fix --cache",
     "format": "prettier --write \"**/*.{js,json,md}\""
   },
@@ -29,6 +29,8 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.7",
+    "cross-env": "^10.1.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-config-standard": "^17.1.0",
