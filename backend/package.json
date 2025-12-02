@@ -8,6 +8,7 @@
     "start": "node src/index.js",
     "test": "NODE_ENV=test vitest",
     "test:watch": "NODE_ENV=test vitest",
+    "lint": "eslint . --fix --cache",
     "format": "prettier --write \"**/*.{js,json,md}\""
   },
   "keywords": [],
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^16.6.2",

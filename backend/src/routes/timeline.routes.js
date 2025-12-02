@@ -1,20 +1,20 @@
-const express = require('express')
+const express = require("express");
 const {
   getTimeline,
   createTimeline,
   refreshTimeline,
   updateTimeline,
-  deleteTimeline
-} = require('../controllers/timeline.controller')
-const { requireAuth } = require('../middlewares/auth')
+  deleteTimeline,
+} = require("../controllers/timeline.controller");
+const { requireAuth } = require("../middlewares/auth");
 
-const router = express.Router()
-router.use(requireAuth)
+const router = express.Router();
+router.use(requireAuth);
 
-router.get('/', getTimeline)
-router.post('/', createTimeline)
-router.post('/:id/refresh', refreshTimeline)
-router.patch('/:id', updateTimeline)
-router.delete('/:id', deleteTimeline)
+router.get("/", getTimeline);
+router.post("/", createTimeline);
+router.post("/:id/refresh", refreshTimeline);
+router.patch("/:id", updateTimeline);
+router.delete("/:id", deleteTimeline);
 
-module.exports = router
+module.exports = router;

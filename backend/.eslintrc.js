@@ -3,15 +3,13 @@ module.exports = {
     commonjs: true,
     es2021: true,
     node: true,
-    jest: true
+    jest: true,
   },
-  extends: [
-    'standard'
-  ],
+  extends: ["standard", "prettier"],
   parserOptions: {
-    ecmaVersion: 'latest'
+    ecmaVersion: "latest",
   },
   rules: {
-    'no-unused-vars': 'warn'
-  }
-}
+    "no-unused-vars": "warn",
+  },
+};

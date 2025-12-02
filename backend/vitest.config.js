@@ -1,12 +1,12 @@
-import { config } from 'dotenv'
-import { resolve, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { config } from "dotenv";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Load .env.test file for test environment
-config({ path: resolve(__dirname, '.env.test') })
+config({ path: resolve(__dirname, ".env.test") });
 
 export default {
   test: {
@@ -14,11 +14,11 @@ export default {
     hookTimeout: 60000,
     // run tests in the same thread/process to avoid flakiness from parallel DB instances
     threads: false,
-    environment: 'node',
+    environment: "node",
     globals: true,
-    include: ['tests/**/*.test.js'],
+    include: ["tests/**/*.test.js"],
     coverage: {
-      enabled: false
-    }
-  }
-}
+      enabled: false,
+    },
+  },
+};
