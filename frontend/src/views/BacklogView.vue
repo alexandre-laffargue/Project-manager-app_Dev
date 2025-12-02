@@ -22,6 +22,9 @@
         :all-issues="issues"
         @edit-sprint="openEditSprintModal"
         @delete-sprint="deleteSprint"
+        @start-sprint="startSprint"
+        @close-sprint="closeSprint"
+        @reopen-sprint="reopenSprint"
       />
 
       <IssueList :issues="issues" @edit-issue="openEditIssueModal" @delete-issue="deleteIssue" />
@@ -97,6 +100,9 @@ const {
   closeEditSprintModal,
   saveEditSprint,
   deleteSprint,
+  startSprint,
+  closeSprint,
+  reopenSprint,
   createIssue,
   openEditIssueModal,
   closeEditIssueModal,

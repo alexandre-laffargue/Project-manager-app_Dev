@@ -6,6 +6,11 @@ const sprintSchema = new mongoose.Schema(
     startDate: { type: Date, default: null },
     endDate: { type: Date, default: null },
     objective: { type: String, default: "" },
+    status: {
+      type: String,
+      enum: ["planned", "active", "completed"],
+      default: "planned",
+    },
     ownerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
