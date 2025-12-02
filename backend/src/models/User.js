@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema(
   {
@@ -7,14 +7,14 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
-      trim: true,
+      trim: true
     },
     passwordHash: { type: String, required: true },
     name: { type: String, required: true },
-    roles: { type: [String], default: ["user"] },
-    refreshToken: { type: String, default: null },
+    roles: { type: [String], default: ['user'] },
+    refreshToken: { type: String, default: null }
   },
-  { timestamps: true },
-);
+  { timestamps: true }
+)
 
-module.exports = mongoose.models.User || mongoose.model("User", userSchema);
+module.exports = mongoose.models.User || mongoose.model('User', userSchema)

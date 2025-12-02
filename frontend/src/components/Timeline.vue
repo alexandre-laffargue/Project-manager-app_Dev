@@ -136,6 +136,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 
+defineOptions({
+  name: 'ProjectTimeline'
+})
+
 const props = defineProps({
   boardId: {
     type: String,
@@ -160,7 +164,6 @@ const panStartScrollLeft = ref(0)
 // Configuration
 const sidebarWidth = 250
 const cellWidth = ref(40)
-const rowHeight = 50
 
 const viewModes = [
   { value: 'day', label: 'Jour' },

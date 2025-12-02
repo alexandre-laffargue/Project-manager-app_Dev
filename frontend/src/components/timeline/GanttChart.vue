@@ -223,7 +223,7 @@ watch(
   { deep: true },
 )
 
-function handleScroll(e) {
+function handleScroll() {
   if (isExpanding.value) return
 
   const el = scrollContainer.value
@@ -532,16 +532,16 @@ function goToToday() {
   scrollToDate(getTodayUTC())
 }
 
-function handleWheel(e) {
-  if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-    if (!e.shiftKey) {
-      e.preventDefault()
-      scrollContainer.value.scrollLeft += e.deltaY
+function handleWheel(event) {
+  if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+    if (!event.shiftKey) {
+      event.preventDefault()
+      scrollContainer.value.scrollLeft += event.deltaY
     }
   } else {
-    if (e.shiftKey) {
-      e.preventDefault()
-      scrollContainer.value.scrollTop += e.deltaX
+    if (event.shiftKey) {
+      event.preventDefault()
+      scrollContainer.value.scrollTop += event.deltaX
     }
   }
 }

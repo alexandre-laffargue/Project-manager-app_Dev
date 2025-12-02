@@ -255,7 +255,6 @@ const {
   isAuthenticated,
   loading,
   error,
-  tasks,
   sortedTasks,
   viewMode,
   zoom,
