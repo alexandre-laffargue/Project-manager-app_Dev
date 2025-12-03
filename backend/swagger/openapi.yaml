@@ -9,6 +9,9 @@ tags:
   - name: Boards
   - name: Columns
   - name: Cards
+  - name: Issues
+  - name: Sprints
+  - name: Timeline
   - name: System
 
 components:
@@ -74,6 +77,64 @@ components:
         dueDate:
           type: string
           format: date-time
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    Issue:
+      type: object
+      properties:
+        _id: { type: string }
+        boardId: { type: string }
+        sprintId: { type: string, nullable: true }
+        title: { type: string }
+        description: { type: string }
+        type: { type: string, enum: [Bug, Feature, Task] }
+        priority: { type: string, enum: [Low, Medium, High] }
+        position: { type: integer }
+        startDate: { type: string, format: date-time, nullable: true }
+        endDate: { type: string, format: date-time, nullable: true }
+        checklist:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              text: { type: string }
+              checked: { type: boolean }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    Sprint:
+      type: object
+      properties:
+        _id: { type: string }
+        name: { type: string }
+        startDate: { type: string, format: date-time, nullable: true }
+        endDate: { type: string, format: date-time, nullable: true }
+        objective: { type: string }
+        status: { type: string, enum: [planned, active, completed] }
+        ownerId: { type: string }
+        boardId: { type: string, nullable: true }
+        issues:
+          type: array
+          items: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    Timeline:
+      type: object
+      properties:
+        _id: { type: string }
+        boardId: { type: string, nullable: true }
+        ownerId: { type: string }
+        name: { type: string }
+        data: { type: object }
+        selectedSprints:
+          type: array
+          items: { type: string }
+        selectedIssues:
+          type: array
+          items: { type: string }
+        snapshotDate: { type: string, format: date-time }
+        version: { type: integer }
+        isPublished: { type: boolean }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
 
@@ -368,3 +429,446 @@ paths:
         '204': { description: Deleted }
         '403': { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
         '404': { description: Card not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/issues:
+    get:
+      tags: [Issues]
+      summary: List issues
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: query
+          name: boardId
+          schema: { type: string }
+        - in: query
+          name: scope
+          schema: { type: string, enum: [backlog, sprint] }
+        - in: query
+          name: sprintId
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Issue' }
+    post:
+      tags: [Issues]
+      summary: Create issue
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [boardId, title]
+              properties:
+                boardId: { type: string }
+                title: { type: string }
+                description: { type: string }
+                type: { type: string, enum: [Bug, Feature, Task], default: Task }
+                priority: { type: string, enum: [Low, Medium, High], default: Medium }
+                position: { type: integer }
+                sprintId: { type: string, nullable: true }
+                checklist:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id: { type: string }
+                      text: { type: string }
+                      checked: { type: boolean }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Issue' }
+        '400': { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/issues/reorder:
+    patch:
+      tags: [Issues]
+      summary: Reorder issue
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [issueId, toPosition, boardId]
+              properties:
+                issueId: { type: string }
+                toPosition: { type: integer }
+                sprintId: { type: string, nullable: true }
+                boardId: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Issue' }
+        '400': { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/issues/moveToSprint:
+    patch:
+      tags: [Issues]
+      summary: Move issue to sprint
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [issueId, boardId]
+              properties:
+                issueId: { type: string }
+                sprintId: { type: string, nullable: true }
+                toPosition: { type: integer }
+                boardId: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Issue' }
+        '400': { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/issues/{id}/dates:
+    patch:
+      tags: [Issues]
+      summary: Update issue dates
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startDate: { type: string, format: date-time, nullable: true }
+                endDate: { type: string, format: date-time, nullable: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Issue' }
+        '400': { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/issues/{id}:
+    patch:
+      tags: [Issues]
+      summary: Update issue
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                type: { type: string, enum: [Bug, Feature, Task] }
+                priority: { type: string, enum: [Low, Medium, High] }
+                sprintId: { type: string, nullable: true }
+                startDate: { type: string, format: date-time, nullable: true }
+                endDate: { type: string, format: date-time, nullable: true }
+                checklist:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id: { type: string }
+                      text: { type: string }
+                      checked: { type: boolean }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Issue' }
+        '400': { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    delete:
+      tags: [Issues]
+      summary: Delete issue
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Deleted }
+        '403': { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '404': { description: Issue not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/sprints:
+    get:
+      tags: [Sprints]
+      summary: List sprints
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: query
+          name: boardId
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Sprint' }
+    post:
+      tags: [Sprints]
+      summary: Create sprint
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                startDate: { type: string, format: date-time, nullable: true }
+                endDate: { type: string, format: date-time, nullable: true }
+                objective: { type: string }
+                status: { type: string, enum: [planned, active, completed] }
+                issues: { type: array, items: { type: string } }
+                boardId: { type: string, nullable: true }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sprint' }
+        '400': { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/sprints/{id}/start:
+    post:
+      tags: [Sprints]
+      summary: Start sprint
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sprint' }
+        '400': { description: Error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/sprints/{id}/close:
+    post:
+      tags: [Sprints]
+      summary: Close sprint
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                endDate: { type: string, format: date-time }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sprint' }
+        '400': { description: Error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/sprints/{id}/reopen:
+    post:
+      tags: [Sprints]
+      summary: Reopen sprint
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sprint' }
+        '400': { description: Error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/sprints/{id}:
+    patch:
+      tags: [Sprints]
+      summary: Update sprint
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                startDate: { type: string, format: date-time, nullable: true }
+                endDate: { type: string, format: date-time, nullable: true }
+                objective: { type: string }
+                status: { type: string, enum: [planned, active, completed] }
+                issues: { type: array, items: { type: string } }
+                boardId: { type: string, nullable: true }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sprint' }
+        '400': { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    delete:
+      tags: [Sprints]
+      summary: Delete sprint
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Deleted }
+        '403': { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '404': { description: Sprint not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+
+  /api/timeline:
+    get:
+      tags: [Timeline]
+      summary: Get timelines
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: query
+          name: boardId
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Timeline' }
+    post:
+      tags: [Timeline]
+      summary: Create timeline snapshot
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                boardId: { type: string }
+                name: { type: string }
+                data: { type: object }
+                selectedSprints: { type: array, items: { type: string } }
+                selectedIssues: { type: array, items: { type: string } }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  snapshot: { $ref: '#/components/schemas/Timeline' }
+
+  /api/timeline/{id}/refresh:
+    post:
+      tags: [Timeline]
+      summary: Refresh timeline snapshot
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  snapshot: { $ref: '#/components/schemas/Timeline' }
+
+  /api/timeline/{id}:
+    patch:
+      tags: [Timeline]
+      summary: Update timeline metadata
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                isPublished: { type: boolean }
+                selectedSprints: { type: array, items: { type: string } }
+                selectedIssues: { type: array, items: { type: string } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  snapshot: { $ref: '#/components/schemas/Timeline' }
+    delete:
+      tags: [Timeline]
+      summary: Delete timeline
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '204': { description: Deleted }
+        '403': { description: Forbidden, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '404': { description: Timeline not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
